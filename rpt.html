@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Intervention Reports</title>
+
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    form { margin-bottom: 20px; }
+    input, button { margin: 5px; padding: 8px; }
+  </style>
+</head>
+<body>
+
+  <h2>Technician Interventions</h2>
+
+  <!-- Filter Form -->
+  <form id="filterForm">
+    <input type="text" id="techId" placeholder="Technician ID">
+    <input type="text" id="techName" placeholder="Technician Name">
+    <input type="date" id="startDate" required>
+    <input type="date" id="endDate" required>
+    <button type="submit">Filter</button>
+  </form>
+
+  <!-- Results Table -->
+  <table id="resultsTable" class="display" style="width:100%">
+    <thead>
+      <tr>
+        <th>Tech ID</th>
+        <th>Start Time</th>
+        <th>End Time</th>
+        <th>Restaurant</th>
+        <th>Type</th>
+        <th>Motif</th>
+        <th>Description</th>
+        <th>Taxi</th>
+        <th>Train</th>
+        <th>Meals</th>
+        <th>Hotel</th>
+        <th>Other Costs</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+  </table>
+
+  <!-- Export Buttons -->
+  <button id="exportMission">Export Mission Order (PDF)</button>
+  <button id="exportExpense">Export Expense Report (PDF)</button>
+
+  <script>
+    // Initialize DataTable
+    let dataTable = $('#resultsTable').DataTable({
+      responsive: true,
+      pageLength: 10,
+      columns: [
+        { data: 'techId' },
+        { data: 'startTime' },
+        { data: 'endTime' },
+        { data: 'restaurant' },
+        { data: 'interventionType' },
+        { data: 'motif' },
+        { data: 'description' },
+        { data: 'taxi' },
+        { data: 'train' },
+        { data: 'meals' },
+        { data: 'hotel' },
+        { data: 'otherCosts' },
+        { data: 'total' }
+      ]
+    });
+
+    // Handle form submission
+    document.getElementById('filterForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await fetchAndDisplayData();
+    });
+
+    // Auto-fill technician name when ID is entered
+    document.getElementById('techId').addEventListener('change', async (e) => {
+      const techId = e.target.value;
+      if (techId) {
+        const techName = await fetchTechnicianName(techId);
+        document.getElementById('techName').value = techName;
+      }
+    });
+
+    // Auto-fill technician ID when name is entered
+    document.getElementById('techName').addEventListener('change', async (e) => {
+      const techName = e.target.value;
+      if (techName) {
+        const techId = await fetchTechnicianId(techName);
+        document.getElementById('techId').value = techId;
+      }
+    });
+
+    // Fetch and display data
+    async function fetchAndDisplayData() {
+      const filters = {
+        techId: document.getElementById('techId').value,
+        startDate: document.getElementById('startDate').value,
+        endDate: document.getElementById('endDate').value
+      };
+
+      try {
+        // Replace with your WebApp endpoint from Google Apps Script
+        const url = `https://script.google.com/macros/s/YOUR_WEBAPP_ID/exec?techId=${filters.techId}&startDate=${filters.startDate}&endDate=${filters.endDate}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        dataTable.clear().rows.add(data).draw();
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        alert('Error fetching data. Please try again.');
+      }
+    }
+
+    // Export Mission Order PDF
+    document.getElementById('exportMission').addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const techId = document.getElementById('techId').value;
+      const techName = document.getElementById('techName').value;
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+
+      doc.setFontSize(20);
+      doc.text('Mission Order', 105, 20, { align: 'center' });
+
+      doc.setFontSize(12);
+      doc.text(`Technician ID: ${techId}`, 20, 40);
+      doc.text(`Technician Name: ${techName}`, 20, 50);
+      doc.text(`Period: ${startDate} to ${endDate}`, 20, 60);
+
+      const tableData = dataTable.data().toArray();
+      doc.autoTable({
+        startY: 70,
+        head: [['Date', 'Type', 'Description', 'Total']],
+        body: tableData.map(row => [
+          row.startTime,
+          row.interventionType,
+          row.description,
+          row.total
+        ])
+      });
+
+      doc.save('mission-order.pdf');
+    });
+
+    // Export Expense Report PDF
+    document.getElementById('exportExpense').addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const techId = document.getElementById('techId').value;
+      const techName = document.getElementById('techName').value;
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+
+      doc.setFontSize(20);
+      doc.text('Expense Report', 105, 20, { align: 'center' });
+
+      doc.setFontSize(12);
+      doc.text(`Technician ID: ${techId}`, 20, 40);
+      doc.text(`Technician Name: ${techName}`, 20, 50);
+      doc.text(`Period: ${startDate} to ${endDate}`, 20, 60);
+
+      const tableData = dataTable.data().toArray();
+      const totals = tableData.reduce((acc, row) => ({
+        taxi: acc.taxi + parseFloat(row.taxi || 0),
+        train: acc.train + parseFloat(row.train || 0),
+        meals: acc.meals + parseFloat(row.meals || 0),
+        hotel: acc.hotel + parseFloat(row.hotel || 0),
+        other: acc.other + parseFloat(row.otherCosts || 0),
+        total: acc.total + parseFloat(row.total || 0)
+      }), { taxi: 0, train: 0, meals: 0, hotel: 0, other: 0, total: 0 });
+
+      doc.autoTable({
+        startY: 70,
+        head: [['Category', 'Amount']],
+        body: [
+          ['Taxi', totals.taxi.toFixed(2)],
+          ['Train', totals.train.toFixed(2)],
+          ['Meals', totals.meals.toFixed(2)],
+          ['Hotel', totals.hotel.toFixed(2)],
+          ['Other Costs', totals.other.toFixed(2)],
+          ['Total', totals.total.toFixed(2)]
+        ]
+      });
+
+      doc.save('expense-report.pdf');
+    });
+
+    // Helper functions
+    async function fetchTechnicianName(techId) {
+      // Replace with actual API/lookup
+      if (techId === "2004id") return "Hammou Achraf";
+      return "";
+    }
+
+    async function fetchTechnicianId(techName) {
+      // Replace with actual API/lookup
+      if (techName.toLowerCase() === "hammou achraf") return "2004id";
+      return "";
+    }
+  </script>
+
+</body>
+</html>

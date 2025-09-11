@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intervention Expenses</title>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(160deg, #0e101c, #101327 60%);
+      color: #eef2ff;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    h1 {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #b5b9cc;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+    th {
+      color: #b5b9cc;
+      font-weight: 500;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+      color: #eef2ff;
+      outline: none;
+    }
+    input:focus {
+      border-color: #6c8cff;
+    }
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .btn {
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn.add {
+      background: #6c8cff;
+      color: white;
+    }
+    .btn.submit {
+      background: #22c55e;
+      color: white;
+    }
+    .btn:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Expenses & Bills</h1>
+    <div class="subtitle">Fill the costs related to your intervention</div>
+
+    <div class="card">
+      <form id="expensesForm">
+        <table id="expensesTable">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Cost (MAD)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be added dynamically -->
+          </tbody>
+        </table>
+        <div class="actions">
+          <button type="button" class="btn add" id="addRowBtn">+ Add Expense</button>
+          <button type="submit" class="btn submit">Submit Expenses</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+<script>
+  const categories = [
+    "Transport (Taxi)",
+    "Transport (Train)",
+    "Meals",
+    "Hostel",
+    "Autoroute",
+    "Kms",       // ✅ added new category
+    "Other"
+  ];
+  const tbody = document.querySelector("#expensesTable tbody");
+  const addRowBtn = document.getElementById("addRowBtn");
+
+  function createRow() {
+    const tr = document.createElement("tr");
+
+    // Category
+    const tdCategory = document.createElement("td");
+    const select = document.createElement("select");
+    select.name = "category";
+    categories.forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat;
+      select.appendChild(opt);
+    });
+    tdCategory.appendChild(select);
+
+    // Description
+    const tdDesc = document.createElement("td");
+    const inputDesc = document.createElement("input");
+    inputDesc.type = "text";
+    inputDesc.name = "description";
+    inputDesc.placeholder = "e.g. Taxi from airport";
+    tdDesc.appendChild(inputDesc);
+
+    // Cost / Kms
+    const tdCost = document.createElement("td");
+    const inputCost = document.createElement("input");
+    inputCost.type = "number";
+    inputCost.name = "cost";
+    inputCost.placeholder = "0.00";
+    inputCost.min = 0;
+    tdCost.appendChild(inputCost);
+
+    // Remove button
+    const tdRemove = document.createElement("td");
+    const btnRemove = document.createElement("button");
+    btnRemove.textContent = "✕";
+    btnRemove.type = "button";
+    btnRemove.style.background = "transparent";
+    btnRemove.style.border = "none";
+    btnRemove.style.color = "#ff6b6b";
+    btnRemove.style.fontSize = "18px";
+    btnRemove.style.cursor = "pointer";
+    btnRemove.addEventListener("click", () => tr.remove());
+    tdRemove.appendChild(btnRemove);
+
+    tr.appendChild(tdCategory);
+    tr.appendChild(tdDesc);
+    tr.appendChild(tdCost);
+    tr.appendChild(tdRemove);
+
+    tbody.appendChild(tr);
+
+    // Special handling: if "Kms" selected → placeholder becomes kms instead of MAD
+    select.addEventListener("change", () => {
+      if (select.value === "Kms") {
+        inputCost.placeholder = "Enter kms driven";
+      } else {
+        inputCost.placeholder = "0.00";
+      }
+    });
+  }
+
+  addRowBtn.addEventListener("click", createRow);
+
+  // Add an initial row
+  createRow();
+
+  document.getElementById("expensesForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    const expenses = rows.map(tr => {
+      const category = tr.querySelector("select").value;
+      const description = tr.querySelector("input[name='description']").value.trim();
+      const cost = parseFloat(tr.querySelector("input[name='cost']").value);
+
+      // ✅ If it's kms → store the kms (not converted)
+      if (category === "Kms") {
+        return { category, description, kms: isNaN(cost) ? 0 : cost };
+      }
+
+      return { category, description, cost };
+    }).filter(e => e.description && ((e.cost !== undefined && !isNaN(e.cost)) || (e.kms !== undefined && !isNaN(e.kms))));
+
+    if (expenses.length === 0) {
+      return Swal.fire({ icon: "warning", title: "No expenses added" });
+    }
+
+    // Collect query params (interventionId)
+    const params = new URLSearchParams(window.location.search);
+    const interventionId = params.get("id") || "unknown";
+
+    const payload = {
+      type: "expenses",
+      interventionId,
+      expenses,
+      submittedAt: new Date().toISOString()
+    };
+
+    try {
+      const res = await fetch("https://script.google.com/macros/s/AKfycbz08RMM7z4BHhXFERDU4K648cS4o2S18PBmdXaqM0hoq72c4B1DSfsIQMW4Lyr-ryoC/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Expenses submitted",
+        timer: 2000,
+        showConfirmButton: false
+      }).then(() => {
+        window.location.href = "index.html";
+      });
+
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Submission failed" });
+    }
+  });
+</script>
+
+</body>
+</html>

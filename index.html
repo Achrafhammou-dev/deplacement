@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <style>
+/* Force style for opened list */
+select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  background-color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,<svg width='20' height='20' fill='gray' xmlns='http://www.w3.org/2000/svg'><path d='M5 8l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+/* Options when opened */
+select option {
+  background-color: #f9fafb; /* light gray instead of white */
+  color: #111827;           /* dark text */
+  padding: 10px;
+  font-size: 15px;
+}
+
+/* Hover effect on options */
+select option:hover {
+  background-color: #ef4444; /* Burger King red */
+  color: white;
+}
+
+
+  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Technician Intervention Form</title>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- SweetAlert2 for elegant toasts & dialogs -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root{
+      --bg: #0f1220;
+      --card: rgba(255,255,255,0.08);
+      --card-2: rgba(255,255,255,0.06);
+      --txt: #eef2ff;
+      --muted: #b5b9cc;
+      --primary: #6c8cff;
+      --accent: #7ef3d9;
+      --danger: #ff6b6b;
+      --ok: #22c55e;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius-xl: 22px;
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{
+      height: 100%;
+    }
+    body{
+      margin:0; font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: var(--txt);
+      background: radial-gradient(1000px 600px at 10% -20%, #1a1f3f, transparent 60%),
+                  radial-gradient(900px 600px at 120% 10%, #163734, transparent 55%),
+                  linear-gradient(160deg, #0e101c, #101327 60%);
+      overflow-x: hidden;
+    }
+
+    .container{
+      max-width: 1100px; margin: 0 auto; padding: 40px 20px 100px;
+    }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .logo{
+      width:44px; height:44px; border-radius:12px; background: linear-gradient(135deg, var(--primary), #9aaeff); box-shadow: 0 6px 20px rgba(108,140,255,.5);
+    }
+    h1{ font-size: clamp(22px, 2.4vw, 34px); margin:0; letter-spacing: .4px; }
+    .subtitle{ color: var(--muted); margin-top:4px; font-size: 14px; }
+
+    .card{
+      background: var(--card); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-xl); box-shadow: var(--shadow);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      overflow: hidden; position: relative;
+      animation: floatIn .6s ease-out both;
+    }
+    @keyframes floatIn{ from{ transform: translateY(20px) scale(.98); opacity:0 } to{ transform: translateY(0) scale(1); opacity:1 } }
+
+    .card::before{
+      content: ""; position:absolute; inset: -2px; z-index:0; pointer-events:none;
+      background: radial-gradient(600px 120px at 10% -10%, rgba(126,243,217,.20), transparent 70%),
+                  radial-gradient(400px 120px at 120% -10%, rgba(108,140,255,.18), transparent 70%);
+      filter: blur(14px);
+    }
+
+    form{ position:relative; z-index:1; display:grid; grid-template-columns: repeat(12, 1fr); gap:18px; padding: 26px; }
+
+    .section-title{ grid-column: 1 / -1; font-weight: 600; letter-spacing:.5px; margin: 6px 0 2px; }
+
+    .field{ grid-column: span 6; }
+    .field.full{ grid-column: 1 / -1; }
+    .field.third{ grid-column: span 4; }
+    .field.quarter{ grid-column: span 3; }
+
+    label{ display:block; font-size: 13px; color: var(--muted); margin: 0 0 8px 4px; }
+
+    input[type="text"], input[type="datetime-local"], select, textarea{
+      width:100%; background: var(--card-2); color: var(--txt);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 14px; 
+      padding: 12px 14px; outline: none; font-size: 15px;
+      transition: box-shadow .2s ease, border-color .2s ease, transform .08s ease;
+    }
+    textarea{ min-height: 110px; resize: vertical; }
+
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(126,243,217,.8); box-shadow: 0 0 0 3px rgba(126,243,217,.15), inset 0 0 0 1px rgba(126,243,217,.25);
+      transform: translateY(-1px);
+    }
+
+    .id-row{ display:flex; gap:12px; align-items:flex-start; }
+    .id-preview{
+      flex: 1; padding: 10px 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,.2);
+      background: rgba(255,255,255,0.04); color: var(--muted); font-size: 14px; height: 44px; display:flex; align-items:center;
+    }
+    .id-ok{ color: var(--accent); font-weight:600; }
+    .id-bad{ color: var(--danger); font-weight:600; }
+
+    .segmented{
+      display:inline-flex; background: var(--card-2); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 4px; gap:6px;
+    }
+    .segmented input{ display:none; }
+    .segmented label{
+      padding: 8px 14px; border-radius: 10px; cursor:pointer; font-size: 14px; color: var(--muted);
+      transition: background .2s ease, color .2s ease, transform .06s ease;
+      user-select:none;
+    }
+    .segmented input:checked + label{
+      background: linear-gradient(180deg, rgba(126,243,217,.18), rgba(126,243,217,.08)); color: var(--txt); box-shadow: inset 0 0 0 1px rgba(126,243,217,.35);
+    }
+    .segmented label:active{ transform: scale(.98); }
+
+    .helper{ font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .duration{ font-variant-numeric: tabular-nums; }
+
+    .actions{ display:flex; gap:10px; justify-content:flex-end; grid-column: 1 / -1; padding: 0 6px 8px; }
+    .btn{
+      border: 1px solid rgba(255,255,255,.14); background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06)); color: var(--txt);
+      padding: 12px 16px; border-radius: 14px; cursor: pointer; font-weight: 600; letter-spacing:.2px; 
+      transition: transform .08s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .btn:hover{ box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{ background: linear-gradient(180deg, rgba(108,140,255,.25), rgba(108,140,255,.14)); border-color: rgba(108,140,255,.45); }
+    .btn.success{ background: linear-gradient(180deg, rgba(34,197,94,.28), rgba(34,197,94,.12)); border-color: rgba(34,197,94,.45) }
+
+    .topbar{
+      position: fixed; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent)); transform: scaleX(0); transform-origin: left; transition: transform .6s ease; z-index: 9999;
+    }
+    .topbar.active{ transform: scaleX(1); }
+
+    .footer-note{ color: var(--muted); font-size: 12px; text-align:center; margin-top: 14px; }
+
+    /* 3D hover tilt */
+    .tilt{ perspective: 900px; }
+    .tilt .card{ transform-style: preserve-3d; transition: transform .3s ease; }
+    .tilt:hover .card{ transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+
+    @media (max-width: 820px){
+      .field, .field.third, .field.quarter{ grid-column: 1 / -1; }
+      .id-row{ flex-direction: column; }
+      .id-preview{ height:auto; min-height:44px; }
+      header{ flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar" id="topbar"></div>
+  <div class="container tilt" id="tilt">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Intervention Report</h1>
+          <div class="subtitle">Log every intervention with precise timing & details</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="card" id="card">
+      <form id="interventionForm" novalidate>
+        <div class="section-title">Technician</div>
+
+        <div class="field full">
+          <label for="techId">Technician ID</label>
+          <div class="id-row">
+            <input type="text" id="techId" name="techId" placeholder="e.g. BK001" required autocomplete="off" />
+            <div class="id-preview" id="techNamePreview">Enter your ID to resolve full name…</div>
+          </div>
+          <div class="helper">The full name will appear automatically from your ID.</div>
+        </div>
+
+        <div class="section-title">Timing</div>
+
+        <div class="field third">
+          <label for="start">Start – Date & Time</label>
+          <input type="datetime-local" id="start" name="start" required />
+        </div>
+        <div class="field third">
+          <label for="end">End – Date & Time</label>
+          <input type="datetime-local" id="end" name="end" required />
+          <div class="helper">Duration: <span class="duration" id="duration">—</span></div>
+        </div>
+        <div class="field third">
+          <label>Nature of intervention</label>
+          <div class="segmented" role="tablist" aria-label="Nature of intervention">
+            <input type="radio" id="natureRemote" name="nature" value="Remote" checked />
+            <label for="natureRemote">Remote</label>
+            <input type="radio" id="natureOnsite" name="nature" value="On-site" />
+            <label for="natureOnsite">On‑site</label>
+          </div>
+        </div>
+
+        <div class="section-title">Context</div>
+
+        <div class="field third">
+<label for="restaurant" class="block mb-2 text-sm font-medium text-gray-700">Select Restaurant</label>
+<select id="restaurant" required>
+  <option value="" disabled selected>🍔 Choose your Burger King</option>
+  <option>BK Morocco Mall</option>
+  <option>BK Kitea Geant</option>
+  <option>BK Anfa Place</option>
+  <option>BK Borj Fez</option>
+  <option>BK Agdal Rabat</option>
+  <option>BK Maarif</option>
+  <option>BK Carre Eden</option>
+  <option>BK AL Jazira</option>
+  <option>BK Tanger City Center</option>
+  <option>BK Al Mazar</option>
+  <option>BK Exit Casa</option>
+  <option>BK Sidi Maarouf</option>
+  <option>BK Socco Alto</option>
+  <option>BK Lafayette</option>
+  <option>BK Beni Mellal</option>
+  <option>BK El Jadida</option>
+  <option>BK Arribat Center</option>
+  <option>BK Menara Mall</option>
+  <option>BK Abdelmoumen</option>
+  <option>BK Harhoura</option>
+  <option>BK Tachfine Center</option>
+  <option>BK Marina</option>
+  <option>BK Mohammadia</option>
+  <option>BK Dar Bouazza</option>
+  <option>BK Bd Anfa</option>
+  <option>BK Mahaj Riad</option>
+  <option>BK Tetouan</option>
+  <option>BK Laaraache</option>
+  <option>BK Ibn Battouta</option>
+  <option>BK Targa</option>
+  <option>BK T-Relais</option>
+  <option>BK Marina Sale</option>
+  <option>BK Zeir</option>
+  <option>BK El Bayda</option>
+  <option>BK Temara</option>
+  <option>2 M-ars</option>
+  <option>Carrefour Sale</option>
+  <option>BK Essalama</option>
+  <option>Area Mall</option>
+  <option>Ola Marrakech</option>
+  <option>Sale Bouregreg</option>
+  <option>Settat</option>
+</select>
+
+        </div>
+
+        <div class="field third">
+          <label for="motif">Motif</label>
+          <select id="motif" name="motif" required>
+            <option value="" disabled selected>Select a motif…</option>
+            <option>Incident</option>
+            <option>Maintenance</option>
+            <option>Installation</option>
+            <option>Upgrade</option>
+            <option>Audit</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" placeholder="Describe the problem, actions taken, statuses, references…" required></textarea>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn" id="resetBtn">Reset</button>
+          <button type="submit" class="btn primary" id="submitBtn">Done & Continue</button>
+        </div>
+      </form>
+    </section>
+
+    <div class="footer-note">After submission, you will be redirected to the "Expenses & Bills" page for this intervention.</div>
+  </div>
+
+  <script>
+    // ===================== CONFIG =====================
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz08RMM7z4BHhXFERDU4K648cS4o2S18PBmdXaqM0hoq72c4B1DSfsIQMW4Lyr-ryoC/exec';
+
+    const EMPLOYEES = {
+
+   "IT$$024099": "Amine Belkhadim",
+  "IT%%03924": "Mehdi Ezzahri",
+  "IT!!012712": "Youssef Fahsi",
+  "IT??045323": "Achraf Hammou" ,
+  "IT//001008": "Ilyass Elidrissi" ,
+
+    };
+
+    // 3) Expenses page URL to redirect to after successful submission
+    const EXPENSES_PAGE = 'costs.html'; // provide later
+
+    // ===================== UTILITIES =====================
+    const $ = (sel) => document.querySelector(sel);
+
+    function pad(n){ return String(n).padStart(2,'0'); }
+
+    function toLocalDatetimeValue(date = new Date()){
+      const y = date.getFullYear();
+      const m = pad(date.getMonth()+1);
+      const d = pad(date.getDate());
+      const hh = pad(date.getHours());
+      const mm = pad(date.getMinutes());
+      return `${y}-${m}-${d}T${hh}:${mm}`;
+    }
+
+    function minutesBetween(a, b){
+      const ms = b.getTime() - a.getTime();
+      return Math.round(ms/60000);
+    }
+
+    function formatDuration(mins){
+      if (isNaN(mins) || mins < 0) return '—';
+      const h = Math.floor(mins/60);
+      const m = mins % 60;
+      const parts = [];
+      if (h) parts.push(`${h}h`);
+      if (m || !h) parts.push(`${m}m`);
+      return parts.join(' ');
+    }
+
+    function generateInterventionId(){
+      const d = new Date();
+      return `INT-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;
+    }
+
+    function showToast(icon, title){
+      return Swal.fire({
+        toast: true, position: 'top', timer: 2200, showConfirmButton: false,
+        icon, title, 
+        background: '#111528', color: '#eef2ff', 
+        didOpen: (el)=> el.style.border = '1px solid rgba(255,255,255,.15)'
+      });
+    }
+
+    function setSubmitting(isOn){
+      const bar = $('#topbar');
+      const btn = $('#submitBtn');
+      if(isOn){ bar.classList.add('active'); btn.disabled = true; btn.textContent = 'Saving…'; }
+      else { bar.classList.remove('active'); btn.disabled = false; btn.textContent = 'Done & Continue'; }
+    }
+
+    // 3D tilt for fun
+    (function attachTilt(){
+      const wrap = document.getElementById('tilt');
+      const card = document.getElementById('card');
+      wrap.addEventListener('mousemove', (e)=>{
+        const r = wrap.getBoundingClientRect();
+        const cx = r.left + r.width/2; const cy = r.top + r.height/2;
+        const dx = (e.clientX - cx) / r.width; // -0.5..0.5
+        const dy = (e.clientY - cy) / r.height;
+        const max = 6; // deg
+        card.style.setProperty('--rx', `${(-dy*max).toFixed(2)}deg`);
+        card.style.setProperty('--ry', `${(dx*max).toFixed(2)}deg`);
+      });
+      wrap.addEventListener('mouseleave', ()=>{
+        card.style.removeProperty('--rx'); card.style.removeProperty('--ry');
+      });
+    })();
+
+    // ===================== MAIN LOGIC =====================
+    const techIdInput = $('#techId');
+    const techNamePreview = $('#techNamePreview');
+    const startInput = $('#start');
+    const endInput = $('#end');
+    const durationEl = $('#duration');
+
+    // Defaults: start=now, end=now+60min
+    const now = new Date();
+    startInput.value = toLocalDatetimeValue(now);
+    endInput.value = toLocalDatetimeValue(new Date(now.getTime() + 60*60000));
+
+    function resolveTechName(){
+      const id = techIdInput.value.trim().toUpperCase();
+      const name = EMPLOYEES[id];
+      if(name){
+        techNamePreview.innerHTML = `<span class="id-ok">✔ ${name}</span>`;
+        techNamePreview.dataset.resolved = name;
+      } else if(id){
+        techNamePreview.innerHTML = `<span class="id-bad">ID not found</span>`;
+        techNamePreview.dataset.resolved = '';
+      } else {
+        techNamePreview.textContent = 'Enter your ID to resolve full name…';
+        techNamePreview.dataset.resolved = '';
+      }
+    }
+
+    function updateDuration(){
+      const s = new Date(startInput.value);
+      const e = new Date(endInput.value);
+      const mins = minutesBetween(s, e);
+      durationEl.textContent = formatDuration(mins);
+    }
+
+    techIdInput.addEventListener('input', resolveTechName);
+    startInput.addEventListener('change', updateDuration);
+    endInput.addEventListener('change', updateDuration);
+    updateDuration();
+
+    // Reset
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      document.getElementById('interventionForm').reset();
+      startInput.value = toLocalDatetimeValue(new Date());
+      endInput.value = toLocalDatetimeValue(new Date(Date.now() + 60*60000));
+      resolveTechName();
+      updateDuration();
+      showToast('info', 'Form cleared');
+    });
+
+    // Submit
+    document.getElementById('interventionForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+
+      // Basic validation
+      const id = techIdInput.value.trim().toUpperCase();
+      const techName = techNamePreview.dataset.resolved || '';
+      if(!id || !techName){
+        return showToast('error', 'Please enter a valid Technician ID');
+      }
+
+      const s = new Date(startInput.value);
+      const eEnd = new Date(endInput.value);
+      if(!(s instanceof Date) || isNaN(+s) || !(eEnd instanceof Date) || isNaN(+eEnd)){
+        return showToast('error', 'Invalid date/time values');
+      }
+      if(eEnd < s){
+        return showToast('warning', 'End time must be after start time');
+      }
+
+      const restaurant = document.getElementById('restaurant').value.trim();
+      const motif = document.getElementById('motif').value;
+      const nature = document.querySelector('input[name="nature"]:checked').value;
+      const description = document.getElementById('description').value.trim();
+      if(!restaurant || !motif || !description){
+        return showToast('error', 'Please fill all required fields');
+      }
+
+      const mins = minutesBetween(s, eEnd);
+      const interventionId = generateInterventionId();
+
+const payload = {
+  type: "intervention",
+  interventionId,
+  techId: id,
+  techName,
+  startDateTime: s.toISOString(),
+  endDateTime: eEnd.toISOString(),
+  durationMinutes: mins,
+  restaurant,
+  nature,
+  motif,
+  description,
+  submittedAt: new Date().toISOString(),
+};
+
+
+      // Save locally as a safety net (in case network glitch) – optional
+      const pending = JSON.parse(localStorage.getItem('pending_interventions') || '[]');
+      pending.push(payload);
+      localStorage.setItem('pending_interventions', JSON.stringify(pending));
+
+      // Send to Google Apps Script
+      setSubmitting(true);
+      try{
+try {
+  await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: "no-cors",  
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  showToast('success', 'Intervention saved');
+
+  const arr = JSON.parse(localStorage.getItem('pending_interventions') || '[]')
+                .filter(x => x.interventionId !== interventionId);
+  localStorage.setItem('pending_interventions', JSON.stringify(arr));
+  if (nature === "Remote") {
+      formDirty = false;
+  // Intervention à distance -> pas de frais, retour page index
+  setTimeout(() => { window.location.href = "index.html"; }, 650);
+} else {
+  formDirty = false;
+  // Redirect
+  const q = new URLSearchParams({ id: interventionId, tech: techName, rest: restaurant }).toString();
+  setTimeout(()=>{ window.location.href = `${EXPENSES_PAGE}?${q}`; }, 650);
+}
+
+} catch(err) {
+  console.error(err);
+  Swal.fire({
+    icon: 'error', title: 'Could not submit',
+    text: 'Please check your internet connection or Apps Script URL/CORS settings.',
+    confirmButtonText: 'OK', background: '#111528', color: '#eef2ff'
+  });
+}
+
+      } catch(err){
+        console.error(err);
+        Swal.fire({
+          icon: 'error', title: 'Could not submit',
+          text: 'Please check your internet connection or Apps Script URL/CORS settings.',
+          confirmButtonText: 'OK', background: '#111528', color: '#eef2ff'
+        });
+      } finally {
+        setSubmitting(false);
+      }
+    });
+
+    // Warn before unload if form dirty
+    let formDirty = false;
+    document.getElementById('interventionForm').addEventListener('input', ()=>{ formDirty = true; });
+    window.addEventListener('beforeunload', (e)=>{
+      if(formDirty){ e.preventDefault(); e.returnValue=''; }
+    });
+  </script>
+</body>
+</html>

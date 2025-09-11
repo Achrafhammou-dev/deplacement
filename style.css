@@ -1,0 +1,208 @@
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@200;300;400;500;600;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Open Sans", sans-serif;
+}
+
+
+.input-field select {
+  width: 100%;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  outline: none;
+  font-size: 16px;
+  color: #fff;
+  padding: 0;
+  appearance: none; /* Remove the default dropdown arrow in some browsers */
+  cursor: pointer;
+}
+
+.input-field select:focus {
+  border-bottom: 2px solid #fff;
+  color: #fff;
+}
+
+.input-field select:focus ~ label,
+.input-field select:valid ~ label {
+  font-size: 0.8rem;
+  top: 10px;
+  transform: translateY(-120%);
+}
+
+.input-field select option {
+  background-color: #333;
+  color: #fff;
+}
+
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 0 10px;
+  background: #000;
+  position: relative;
+  /* overflow: hidden; */
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: url("hero.png") no-repeat center center/cover;
+  z-index: -1;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 500px;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  background: rgba(255, 255, 255, 0.05);
+  margin: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  /* gap: 15px; */
+}
+
+h2 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.input-field {
+  position: relative;
+  border-bottom: 2px solid #ccc;
+  padding-top: 10px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.input-field label {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 16px;
+  pointer-events: none;
+  transition: 0.15s ease;
+  }
+
+  input[type="datetime-local"]:not(:focus):not(:valid) {
+    color: transparent;
+  }
+  
+  input[type="datetime-local"]:focus,
+  input[type="datetime-local"]:valid {
+    color: black;
+  }
+
+  
+
+
+
+  
+
+.input-field input,
+.input-field textarea {
+  width: 100%;
+  height: 40px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #fff;
+  padding: 0;
+}
+
+.input-field textarea {
+  resize: vertical;
+  height: auto;
+  min-height: 60px;
+}
+
+.input-field input:focus ~ label,
+.input-field input:valid ~ label,
+.input-field textarea:focus ~ label,
+.input-field textarea:valid ~ label {
+  font-size: 0.8rem;
+  top: 10px;
+  transform: translateY(-120%);
+}
+
+.input-field input[type="file"] {
+  color: #fff;
+  height: auto;
+  padding: 10px 0;
+}
+
+button {
+  background: #fff;
+  color: #000;
+  font-weight: 600;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  border: 2px solid transparent;
+  transition: 0.3s ease;
+}
+
+button:hover {
+  color: #fff;
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.register {
+  text-align: center;
+  margin-top: 20px;
+  color: #fff;
+}
+
+.wrapper a {
+  color: #efefef;
+  text-decoration: none;
+}
+
+.wrapper a:hover {
+  text-decoration: underline;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 20px 15px;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  .input-field label {
+    font-size: 14px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
