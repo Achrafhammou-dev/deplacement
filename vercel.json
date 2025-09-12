@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    { "source": "/report", "destination": "/report.html" },
+    { "source": "/costs", "destination": "/costs.html" }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*.html",
+      "destination": "/:path*",
+      "permanent": true
+    }
+  ]
+}
