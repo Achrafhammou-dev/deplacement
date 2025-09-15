@@ -2,218 +2,962 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Intervention Reports</title>
-
-  <!-- DataTables -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-  <!-- jsPDF -->
+  <title>📊 Intervention Reports</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    form { margin-bottom: 20px; }
-    input, button { margin: 5px; padding: 8px; }
+    body { 
+      background: #121212; 
+      color: #f0f0f0; 
+      font-family: "Segoe UI", sans-serif;
+      overflow-x: hidden;
+    }
+
+    h2, h4 { 
+      color: #ffcc00; 
+      font-weight: bold; 
+      letter-spacing: 1px; 
+      text-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
+    }
+
+    .table {
+      background: #1e1e1e;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+    }
+
+    .table thead {
+      background: linear-gradient(90deg, #ff7e00, #ffcc00);
+      color: #121212;
+    }
+
+    .table tbody tr {
+      transition: all 0.2s ease-in-out;
+    }
+    .table tbody tr:hover {
+      background: rgba(255, 204, 0, 0.1);
+      transform: scale(1.01);
+    }
+
+    .btn {
+      border-radius: 10px;
+      font-weight: bold;
+      transition: all 0.3s ease-in-out;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 12px rgba(255, 204, 0, 0.6);
+    }
+
+    .container { margin-top: 30px; }
+    .report-section { margin-top: 40px; }
+    table th, table td { font-size: 14px; cursor: pointer; }
+    th.sortable:hover { background: #343a40 !important; color: #ffc107; }
+    th .arrow { font-size: 12px; margin-left: 5px; }
+
+    /* Welcome Screen Styles */
+    .welcome-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      animation: gradientShift 6s ease-in-out infinite;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); }
+      50% { background: linear-gradient(135deg, #0f3460, #16213e, #1a1a2e); }
+    }
+
+    .welcome-content {
+      text-align: center;
+      animation: fadeInUp 1s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .welcome-title {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #ffcc00;
+      text-shadow: 0 0 20px rgba(255, 204, 0, 0.8);
+      margin-bottom: 1rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .welcome-subtitle {
+      font-size: 1.2rem;
+      color: #b0b0b0;
+      margin-bottom: 2rem;
+      animation: fadeIn 2s ease-out 0.5s both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .floating-icons {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .floating-icon {
+      position: absolute;
+      font-size: 2rem;
+      color: rgba(255, 204, 0, 0.3);
+      animation: float 8s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    /* Custom Modal Styles */
+    .custom-modal {
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(10px);
+    }
+
+    .custom-modal-content {
+      background: linear-gradient(135deg, #1e1e1e, #2a2a2a);
+      border: 2px solid #ffcc00;
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(255, 204, 0, 0.5);
+      animation: modalSlideIn 0.5s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .custom-modal-header {
+      border-bottom: 1px solid #ffcc00;
+      background: linear-gradient(90deg, #ff7e00, #ffcc00);
+      color: #121212;
+      border-radius: 13px 13px 0 0;
+    }
+
+    .custom-input {
+      background: #2a2a2a;
+      border: 2px solid #555;
+      color: #f0f0f0;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .custom-input:focus {
+      border-color: #ffcc00;
+      box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+      background: #333;
+      color: #fff;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Styled Alert */
+    .styled-alert {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      min-width: 300px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      animation: slideInRight 0.5s ease-out;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
   </style>
 </head>
 <body>
+  <!-- Welcome Screen -->
+  <div id="welcomeScreen" class="welcome-screen">
+    <div class="floating-icons">
+      <div class="floating-icon" style="top: 10%; left: 10%; animation-delay: 0s;">🔧</div>
+      <div class="floating-icon" style="top: 20%; right: 15%; animation-delay: 1s;">📊</div>
+      <div class="floating-icon" style="bottom: 30%; left: 20%; animation-delay: 2s;">🍔</div>
+      <div class="floating-icon" style="bottom: 20%; right: 10%; animation-delay: 3s;">⚙️</div>
+      <div class="floating-icon" style="top: 50%; left: 5%; animation-delay: 4s;">📋</div>
+      <div class="floating-icon" style="top: 60%; right: 5%; animation-delay: 5s;">🔍</div>
+    </div>
+    <div class="welcome-content">
+      <h1 class="welcome-title">🔐 Secure Access Required</h1>
+      <p class="welcome-subtitle">Please search for a technician to access intervention reports</p>
+      <div class="mt-4">
+        <input type="text" id="welcomeSearch" class="form-control custom-input" 
+               placeholder="Enter Tech ID or Name (e.g., 024099 or Amine Belkhadim)" 
+               style="width: 400px; margin: 0 auto;">
+        <button class="btn btn-warning mt-3" onclick="authenticateUser()">🚀 Access Reports</button>
+      </div>
+    </div>
+  </div>
 
-  <h2>Technician Interventions</h2>
+  <!-- Main Content -->
+  <div id="mainContent" class="container hidden">
+    <h2 class="text-center mb-4">📋 Intervention Reports</h2>
+    <div class="alert alert-info" id="userInfo" style="display: none;"></div>
 
-  <!-- Filter Form -->
-  <form id="filterForm">
-    <input type="text" id="techId" placeholder="Technician ID">
-    <input type="text" id="techName" placeholder="Technician Name">
-    <input type="date" id="startDate" required>
-    <input type="date" id="endDate" required>
-    <button type="submit">Filter</button>
-  </form>
+    <!-- Search and Date Range -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <label class="form-label">Search by ID / Name</label>
+        <input type="text" id="searchId" class="form-control" placeholder="Ex: BK002 or Hammou" readonly>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Start Date (DD/MM)</label>
+        <input type="text" id="startDate" class="form-control" placeholder="22/09">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">End Date (DD/MM)</label>
+        <input type="text" id="endDate" class="form-control" placeholder="24/09">
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-primary w-100" onclick="applyFilters()">🔎 Apply Filters</button>
+      </div>
+    </div>
 
-  <!-- Results Table -->
-  <table id="resultsTable" class="display" style="width:100%">
-    <thead>
-      <tr>
-        <th>Tech ID</th>
-        <th>Start Time</th>
-        <th>End Time</th>
-        <th>Restaurant</th>
-        <th>Type</th>
-        <th>Motif</th>
-        <th>Description</th>
-        <th>Taxi</th>
-        <th>Train</th>
-        <th>Meals</th>
-        <th>Hotel</th>
-        <th>Other Costs</th>
-        <th>Total</th>
-      </tr>
-    </thead>
-  </table>
+    <!-- Interventions Table -->
+    <div class="report-section">
+      <h4>📊 Interventions</h4>
+      <table class="table table-bordered table-striped" id="interventionTable">
+        <thead class="table-dark">
+          <tr>
+            <th class="sortable" onclick="sortTable('Tech ID')">Tech ID <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Tech Name')">Tech Name <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Intervention ID')">Intervention ID <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Restaurant')">Restaurant <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Start Date')">Start Date <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('End Date')">End Date <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Nature')">Nature <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Motif')">Motif <span class="arrow">↕</span></th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button class="btn btn-success mt-3" onclick="printInterventions()">🖨️ Print Interventions</button>
+      <button class="btn btn-warning mt-3" onclick="generateMissionOrder()">📄 Générer Ordre de Mission</button>
+      <button class="btn btn-info mt-3" onclick="generateExpenseReport()">📄 Générer Note de Frais</button>
+      <div id="pagination" class="mt-3 d-flex justify-content-center"></div>
+    </div>
+  </div>
 
-  <!-- Export Buttons -->
-  <button id="exportMission">Export Mission Order (PDF)</button>
-  <button id="exportExpense">Export Expense Report (PDF)</button>
+  <!-- Password Modal -->
+  <div class="modal fade custom-modal" id="passwordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content custom-modal-content">
+        <div class="modal-header custom-modal-header">
+          <h5 class="modal-title">🔐 Authentication Required</h5>
+        </div>
+        <div class="modal-body text-center">
+          <p id="authMessage">Please enter your password:</p>
+          <input type="password" id="passwordInput" class="form-control custom-input mt-3" placeholder="Enter password">
+          <div class="mt-3">
+            <button class="btn btn-success" onclick="validatePassword()">✅ Authenticate</button>
+            <button class="btn btn-secondary ms-2" onclick="cancelAuth()">❌ Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // Initialize DataTable
-    let dataTable = $('#resultsTable').DataTable({
-      responsive: true,
-      pageLength: 10,
-      columns: [
-        { data: 'techId' },
-        { data: 'startTime' },
-        { data: 'endTime' },
-        { data: 'restaurant' },
-        { data: 'interventionType' },
-        { data: 'motif' },
-        { data: 'description' },
-        { data: 'taxi' },
-        { data: 'train' },
-        { data: 'meals' },
-        { data: 'hotel' },
-        { data: 'otherCosts' },
-        { data: 'total' }
-      ]
-    });
+    // User database with passwords
+    const users = {
+      "024099": { name: "Amine Belkhadim", password: "amine2024" },
+      "03924": { name: "Mehdi Ezzahri", password: "mehdi2024" },
+      "012712": { name: "Youssef Fahsi", password: "youssef2024" },
+      "045323": { name: "Achraf Hammou", password: "achraf2024" },
+      "001008": { name: "Ilyass Elidrissi", password: "ilyass2024" },
+      "admin": { name: "Administrator", password: "admin123" }
+    };
 
-    // Handle form submission
-    document.getElementById('filterForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      await fetchAndDisplayData();
-    });
+    let allData = [];
+    let filteredData = [];
+    let sortDirections = {};
+    let currentUser = null;
+    let currentPage = 1;
+    let rowsPerPage = 25;
 
-    // Auto-fill technician name when ID is entered
-    document.getElementById('techId').addEventListener('change', async (e) => {
-      const techId = e.target.value;
-      if (techId) {
-        const techName = await fetchTechnicianName(techId);
-        document.getElementById('techName').value = techName;
+    // Load data from Intervention sheet
+    fetch("https://opensheet.elk.sh/1xUiaofSCIt6UgsIfqrLXN7FkcMaU-tLoKZmooBzEGFg/Interventions")
+      .then(res => res.json())
+      .then(data => {
+        console.log("✅ Data loaded:", data);
+        allData = data;
+        filteredData = data;
+      })
+      .catch(err => console.error("❌ Error loading data:", err));
+
+    function authenticateUser() {
+      const searchValue = document.getElementById('welcomeSearch').value.trim();
+      if (!searchValue) {
+        showStyledAlert('⚠️ Please enter a Tech ID or Name', 'warning');
+        return;
       }
-    });
 
-    // Auto-fill technician ID when name is entered
-    document.getElementById('techName').addEventListener('change', async (e) => {
-      const techName = e.target.value;
-      if (techName) {
-        const techId = await fetchTechnicianId(techName);
-        document.getElementById('techId').value = techId;
+      // Find user by ID or name
+      let foundUser = null;
+      for (const [id, userData] of Object.entries(users)) {
+        if (id.toLowerCase() === searchValue.toLowerCase() || 
+            userData.name.toLowerCase().includes(searchValue.toLowerCase())) {
+          foundUser = { id, ...userData };
+          break;
+        }
       }
-    });
 
-    // Fetch and display data
-    async function fetchAndDisplayData() {
-      const filters = {
-        techId: document.getElementById('techId').value,
-        startDate: document.getElementById('startDate').value,
-        endDate: document.getElementById('endDate').value
-      };
+      if (!foundUser) {
+        showStyledAlert('❌ User not found. Please check your credentials.', 'error');
+        return;
+      }
 
-      try {
-        // Replace with your WebApp endpoint from Google Apps Script
-        const url = `https://script.google.com/macros/s/YOUR_WEBAPP_ID/exec?techId=${filters.techId}&startDate=${filters.startDate}&endDate=${filters.endDate}`;
-        const response = await fetch(url);
-        const data = await response.json();
+      // Show password modal
+      currentUser = foundUser;
+      document.getElementById('authMessage').textContent = `Welcome ${foundUser.name}! Please enter your password:`;
+      const modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+      modal.show();
+    }
 
-        dataTable.clear().rows.add(data).draw();
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        alert('Error fetching data. Please try again.');
+    function validatePassword() {
+      const password = document.getElementById('passwordInput').value;
+      if (password === currentUser.password) {
+        // Authentication successful
+        document.getElementById('welcomeScreen').classList.add('hidden');
+        document.getElementById('mainContent').classList.remove('hidden');
+        
+        // Set user info
+        const userInfo = document.getElementById('userInfo');
+        if (currentUser.id === 'admin') {
+          userInfo.innerHTML = `👑 <strong>Administrator Access</strong> - Viewing all interventions`;
+          userInfo.style.display = 'block';
+        } else {
+          userInfo.innerHTML = `👤 <strong>Welcome ${currentUser.name}</strong> (${currentUser.id}) - Viewing your interventions`;
+          userInfo.style.display = 'block';
+          document.getElementById('searchId').value = currentUser.name;
+        }
+        
+        // Close modal and apply initial filters
+        bootstrap.Modal.getInstance(document.getElementById('passwordModal')).hide();
+        document.getElementById('passwordInput').value = '';
+        applyFilters();
+        
+        showStyledAlert('✅ Authentication successful!', 'success');
+      } else {
+        showStyledAlert('❌ Invalid password. Please try again.', 'error');
+        document.getElementById('passwordInput').value = '';
       }
     }
 
-    // Export Mission Order PDF
-    document.getElementById('exportMission').addEventListener('click', () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+    function cancelAuth() {
+      bootstrap.Modal.getInstance(document.getElementById('passwordModal')).hide();
+      document.getElementById('passwordInput').value = '';
+      currentUser = null;
+    }
 
-      const techId = document.getElementById('techId').value;
-      const techName = document.getElementById('techName').value;
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
+    function showStyledAlert(message, type) {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'danger'} alert-dismissible fade show styled-alert`;
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.body.appendChild(alertDiv);
+      
+      setTimeout(() => {
+        if (alertDiv.parentNode) {
+          alertDiv.remove();
+        }
+      }, 4000);
+    }
 
-      doc.setFontSize(20);
-      doc.text('Mission Order', 105, 20, { align: 'center' });
+    // Enhanced date filtering function
+    function parseCustomDate(dateStr, year = new Date().getFullYear()) {
+      if (!dateStr) return null;
+      const parts = dateStr.split('/');
+      if (parts.length === 2) {
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1; // Month is 0-indexed
+        return new Date(year, month, day);
+      }
+      return null;
+    }
 
-      doc.setFontSize(12);
-      doc.text(`Technician ID: ${techId}`, 20, 40);
-      doc.text(`Technician Name: ${techName}`, 20, 50);
-      doc.text(`Period: ${startDate} to ${endDate}`, 20, 60);
+    function applyFilters() {
+      let searchId = document.getElementById("searchId").value.toLowerCase();
+      let startDateStr = document.getElementById("startDate").value;
+      let endDateStr = document.getElementById("endDate").value;
+      
+      let startDate = parseCustomDate(startDateStr);
+      let endDate = parseCustomDate(endDateStr);
 
-      const tableData = dataTable.data().toArray();
-      doc.autoTable({
-        startY: 70,
-        head: [['Date', 'Type', 'Description', 'Total']],
-        body: tableData.map(row => [
-          row.startTime,
-          row.interventionType,
-          row.description,
-          row.total
-        ])
+      filteredData = allData.filter(row => {
+        // User-specific filtering (except for admin)
+        if (currentUser && currentUser.id !== 'admin') {
+          const matchesUser = (row["Tech ID"] || "").toLowerCase() === currentUser.id.toLowerCase() ||
+                             (row["Tech Name"] || "").toLowerCase().includes(currentUser.name.toLowerCase());
+          if (!matchesUser) return false;
+        }
+
+        // Search filter
+        let matchSearch = searchId
+          ? (
+              (row["Tech ID"] || "").toLowerCase().includes(searchId) ||
+              (row["Tech Name"] || "").toLowerCase().includes(searchId) ||
+              (row["Intervention ID"] || "").toLowerCase().includes(searchId) ||
+              (row["Restaurant"] || "").toLowerCase().includes(searchId) ||
+              (row["Description"] || "").toLowerCase().includes(searchId) ||
+              (row["Motif"] || "").toLowerCase().includes(searchId)
+            )
+          : true;
+
+        // Enhanced date filter for DD/MM format
+        let matchDate = true;
+        if (startDate && endDate) {
+          let rowDate = new Date(row["Start Date"]);
+          if (!isNaN(rowDate)) {
+            // Create date range including all days between start and end
+            let currentDate = new Date(startDate);
+            let matchesDateRange = false;
+            
+            while (currentDate <= endDate) {
+              if (rowDate.getDate() === currentDate.getDate() && 
+                  rowDate.getMonth() === currentDate.getMonth()) {
+                matchesDateRange = true;
+                break;
+              }
+              currentDate.setDate(currentDate.getDate() + 1);
+            }
+            matchDate = matchesDateRange;
+          }
+        } else if (startDate) {
+          let rowDate = new Date(row["Start Date"]);
+          if (!isNaN(rowDate)) {
+            matchDate = rowDate.getDate() === startDate.getDate() && 
+                       rowDate.getMonth() === startDate.getMonth();
+          }
+        }
+
+        return matchSearch && matchDate;
       });
 
-      doc.save('mission-order.pdf');
-    });
+      currentPage = 1;
+      renderTable(filteredData);
+    }
 
-    // Export Expense Report PDF
-    document.getElementById('exportExpense').addEventListener('click', () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+    function formatDateOnly(dateStr) {
+      if (!dateStr) return "";
+      let d = new Date(dateStr);
+      if (isNaN(d)) return dateStr;
+      return d.toLocaleDateString("fr-FR");
+    }
 
-      const techId = document.getElementById('techId').value;
-      const techName = document.getElementById('techName').value;
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
+    function renderTable(data) {
+      let tbody = document.querySelector("#interventionTable tbody");
+      tbody.innerHTML = "";
 
-      doc.setFontSize(20);
-      doc.text('Expense Report', 105, 20, { align: 'center' });
+      let startIndex = (currentPage - 1) * rowsPerPage;
+      let endIndex = startIndex + rowsPerPage;
+      let pageData = data.slice(startIndex, endIndex);
 
-      doc.setFontSize(12);
-      doc.text(`Technician ID: ${techId}`, 20, 40);
-      doc.text(`Technician Name: ${techName}`, 20, 50);
-      doc.text(`Period: ${startDate} to ${endDate}`, 20, 60);
-
-      const tableData = dataTable.data().toArray();
-      const totals = tableData.reduce((acc, row) => ({
-        taxi: acc.taxi + parseFloat(row.taxi || 0),
-        train: acc.train + parseFloat(row.train || 0),
-        meals: acc.meals + parseFloat(row.meals || 0),
-        hotel: acc.hotel + parseFloat(row.hotel || 0),
-        other: acc.other + parseFloat(row.otherCosts || 0),
-        total: acc.total + parseFloat(row.total || 0)
-      }), { taxi: 0, train: 0, meals: 0, hotel: 0, other: 0, total: 0 });
-
-      doc.autoTable({
-        startY: 70,
-        head: [['Category', 'Amount']],
-        body: [
-          ['Taxi', totals.taxi.toFixed(2)],
-          ['Train', totals.train.toFixed(2)],
-          ['Meals', totals.meals.toFixed(2)],
-          ['Hotel', totals.hotel.toFixed(2)],
-          ['Other Costs', totals.other.toFixed(2)],
-          ['Total', totals.total.toFixed(2)]
-        ]
+      pageData.forEach(row => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${row["Tech ID"] || ""}</td>
+            <td>${row["Tech Name"] || ""}</td>
+            <td>${row["Intervention ID"] || ""}</td>
+            <td>${row["Restaurant"] || ""}</td>
+            <td>${formatDateOnly(row["Start Date"])}</td>
+            <td>${formatDateOnly(row["End Date"])}</td>
+            <td>${row["Nature"] || ""}</td>
+            <td>${row["Motif"] || ""}</td>
+            <td>${row["Description"] || ""}</td>
+          </tr>
+        `;
       });
 
-      doc.save('expense-report.pdf');
+      renderPagination(data.length);
+    }
+
+    function renderPagination(totalRows) {
+      let totalPages = Math.ceil(totalRows / rowsPerPage);
+      let pagination = document.getElementById("pagination");
+      pagination.innerHTML = "";
+
+      let prevBtn = `<button class="btn btn-outline-light mx-1" onclick="changePage(-1)" ${currentPage===1?"disabled":""}}>⬅ Prev</button>`;
+      let nextBtn = `<button class="btn btn-outline-light mx-1" onclick="changePage(1)" ${currentPage===totalPages?"disabled":""}}>Next ➡</button>`;
+      
+      pagination.innerHTML = prevBtn + `<span class="mx-2 align-self-center">Page ${currentPage} / ${totalPages}</span>` + nextBtn;
+    }
+
+    function changePage(direction) {
+      currentPage += direction;
+      renderTable(filteredData);
+    }
+
+    // Sort by column
+    function sortTable(column) {
+      if (!sortDirections[column]) sortDirections[column] = "asc";
+      else sortDirections[column] = sortDirections[column] === "asc" ? "desc" : "asc";
+
+      filteredData.sort((a, b) => {
+        let valA = a[column] || "";
+        let valB = b[column] || "";
+        // Parse dates for correct sorting
+        if (column.includes("Date")) {
+          valA = new Date(valA);
+          valB = new Date(valB);
+        }
+        if (valA < valB) return sortDirections[column] === "asc" ? -1 : 1;
+        if (valA > valB) return sortDirections[column] === "asc" ? 1 : -1;
+        return 0;
+      });
+
+      renderTable(filteredData);
+    }
+
+    // Print interventions table as PDF
+    function printInterventions() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("landscape");
+
+      // Header
+      doc.setFontSize(16);
+      doc.text("Intervention Report", 14, 15);
+
+      // Prepare table
+      const tableColumn = ["Tech ID","Tech Name","Intervention ID","Restaurant","Start Date","End Date","Nature","Motif","Description"];
+      const tableRows = [];
+
+      filteredData.forEach(row => {
+        tableRows.push([
+          row["Tech ID"] || "",
+          row["Tech Name"] || "",
+          row["Intervention ID"] || "",
+          row["Restaurant"] || "",
+          row["Start Date"] || "",
+          row["End Date"] || "",
+          row["Nature"] || "",
+          row["Motif"] || "",
+          row["Description"] || ""
+        ]);
+      });
+
+      doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 25,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [0, 0, 0] }
+      });
+
+      // PDF File Naming
+      let filename = "int_report_all.pdf";
+      let searchId = document.getElementById("searchId").value.trim();
+      let startDate = document.getElementById("startDate").value;
+
+      if (searchId) {
+        filename = `int_report_${searchId}.pdf`;
+      } else if (startDate) {
+        let d = new Date(startDate);
+        let mm = String(d.getMonth() + 1).padStart(2, "0");
+        let yy = String(d.getFullYear()).slice(-2);
+        filename = `int_report${mm}${yy}.pdf`;
+      }
+
+      doc.save(filename);
+    }
+
+    // Allow Enter key to authenticate
+    document.getElementById('welcomeSearch').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        authenticateUser();
+      }
     });
 
-    // Helper functions
-    async function fetchTechnicianName(techId) {
-      // Replace with actual API/lookup
-      if (techId === "2004id") return "Hammou Achraf";
-      return "";
-    }
-
-    async function fetchTechnicianId(techName) {
-      // Replace with actual API/lookup
-      if (techName.toLowerCase() === "hammou achraf") return "2004id";
-      return "";
-    }
+    document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        validatePassword();
+      }
+    });
   </script>
 
+// ... existing code ...
+<script>
+async function generateExpenseReport() {
+  if (filteredData.length === 0) {
+    alert("⚠️ Aucun enregistrement trouvé pour générer la Note de Frais.");
+    return;
+  }
+
+  const sheetId = "1xUiaofSCIt6UgsIfqrLXN7FkcMaU-tLoKZmooBzEGFg";
+  let expenses = await fetch(`https://opensheet.elk.sh/${sheetId}/Expenses`).then(r => r.json());
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("landscape");
+  let pageWidth = doc.internal.pageSize.getWidth();
+  let pageHeight = doc.internal.pageSize.getHeight();
+  let bottomMargin = 60;
+
+  const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Burger_King_logo_%281999%E2%80%932020%29.svg/1200px-Burger_King_logo_%281999%E2%80%932020%29.svg.png";
+  const logoImg = await loadImage(logoUrl);
+
+  function drawHeader(first) {
+    doc.addImage(logoImg, "PNG", 10, 10, 25, 25);
+
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.text("Travel Expense", 40, 16);
+    doc.setFont("helvetica", "bolditalic");
+    doc.setFontSize(11);
+    doc.text("Traveling Expenses Form", 40, 24);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("GENERAL FIRST FOOD SERVICES S.A.S", pageWidth / 2, 12, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    let xInfo = pageWidth - 80;
+    doc.rect(xInfo, 15, 70, 25);
+    doc.text(`N° Matricule : ${first["Tech ID"] || ""}`, xInfo + 3, 21);
+    let techName = (first["Tech Name"] || "").split(" ");
+    doc.text(`Nom : ${techName[0] || ""}`, xInfo + 3, 28);
+    doc.text(`Prénom : ${techName.slice(1).join(" ") || ""}`, xInfo + 3, 35);
+
+    let today = new Date().toLocaleDateString("fr-FR");
+    doc.rect(xInfo, 45, 70, 10);
+    doc.text(today, xInfo + 25, 52);
+  }
+
+  let grouped = {};
+  let diversDetails = {};
+
+  expenses.forEach(exp => {
+    if (filteredData.some(f => f["Intervention ID"] === exp["Intervention ID"])) {
+      let matchedIntervention = filteredData.find(f => f["Intervention ID"] === exp["Intervention ID"]);
+      if (!matchedIntervention) return;
+
+      let jour = new Date(matchedIntervention["Start Date"]).getDate();
+      let mois = new Date(matchedIntervention["Start Date"]).getMonth() + 1;
+      let libelle = matchedIntervention["Restaurant"] || "";
+
+      let key = `${jour}-${mois}-${libelle}`;
+      if (!grouped[key]) {
+        grouped[key] = { jour, mois, libelle, train: 0, autoroute: 0, taxi: 0, kms: 0, montant: 0, hotel: 0, repas: 0, divers: 0 };
+        diversDetails[key] = [];
+      }
+
+      let amount = parseFloat(exp["Montant"] || 0);
+      let nature = (exp["Nature"] || "").trim().toLowerCase();
+
+      if (nature.includes("taxi")) grouped[key].taxi += amount;
+      else if (nature.includes("train")) grouped[key].train += amount;
+      else if (nature.includes("meal") || nature.includes("repas")) grouped[key].repas += amount;
+      else if (nature.includes("hotel") || nature.includes("hostel")) grouped[key].hotel += amount;
+      else if (nature.includes("autoroute")) grouped[key].autoroute += amount;
+      else if (nature.includes("kms")) {
+        let kmsValue = parseFloat(exp["Montant"] || 0);
+        grouped[key].kms += kmsValue;
+        grouped[key].montant += kmsValue * 3;
+      } else {
+        grouped[key].divers += amount;
+        diversDetails[key].push(`${exp["Description"] || "Autre"} | ${amount} dhs`);
+      }
+    }
+  });
+
+  let rows = Object.values(grouped).map(g => {
+    let total = g.train + g.autoroute + g.taxi + g.montant + g.hotel + g.repas + g.divers;
+    return [ g.jour, g.mois, g.libelle, g.train.toFixed(2), g.autoroute.toFixed(2), g.taxi.toFixed(2), g.kms.toFixed(0), g.montant.toFixed(2), g.hotel.toFixed(2), g.repas.toFixed(2), g.divers.toFixed(2), total.toFixed(2) ];
+  });
+
+  let totalGeneral = rows.reduce((acc, r) => acc + parseFloat(r[11]), 0);
+
+  function drawTable(startY) {
+    let colWidths = [15, 15, 45, 20, 25, 20, 15, 25, 25, 25, 25, 25];
+    let headers = ["JOUR","MOIS","Libellé de la dépense","Train","Autoroute","Taxi","Kms","Montant","HOTEL","REPAS","DIVERS TTC","TOTAL"];
+
+    let y = startY;
+    let rowHeight = 8;
+
+    function drawHeaderRow() {
+      let x = 10;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      headers.forEach((h, i) => {
+        doc.rect(x, y, colWidths[i], 10);
+        doc.text(h, x + colWidths[i]/2, y + 7, { align: "center" });
+        x += colWidths[i];
+      });
+      y += 10;
+    }
+
+    drawHeaderRow();
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+
+    rows.forEach((r, idx) => {
+      if (y + rowHeight + bottomMargin > pageHeight) {
+        doc.addPage();
+        y = 20;
+        drawHeaderRow();
+      }
+      let x = 10;
+      r.forEach((cell, i) => {
+        doc.rect(x, y, colWidths[i], rowHeight);
+        doc.text(String(cell), x + colWidths[i]/2, y + 6, { align: "center" });
+        x += colWidths[i];
+      });
+      y += rowHeight;
+    });
+
+    while (y + rowHeight + bottomMargin < pageHeight - 10) {
+      let x = 10;
+      headers.forEach((_, i) => {
+        doc.rect(x, y, colWidths[i], rowHeight);
+        x += colWidths[i];
+      });
+      y += rowHeight;
+    }
+
+    let x = 10;
+    headers.forEach((_, i) => {
+      doc.rect(x, y, colWidths[i], rowHeight);
+      if (i === headers.length - 2) doc.text("TOTAL", x + colWidths[i]/2, y + 6, { align: "center" });
+      if (i === headers.length - 1) doc.text(totalGeneral.toFixed(2), x + colWidths[i]/2, y + 6, { align: "center" });
+      x += colWidths[i];
+    });
+    return y + rowHeight;
+  }
+
+  function drawBottomSection() {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let y = pageHeight - 35;
+
+    doc.rect(10, y, 90, 12);
+    doc.text("N° Pièce :", 12, y + 7);
+
+    doc.rect(10, y + 12, 90, 12);
+    doc.text("Visa Comptabilité :", 12, y + 19);
+
+    let labels = ["Signature Émetteur :","Visa Responsable :","Visa Finance Manager :","Visa General Manager :"];
+
+    let xStart = 110;
+    let availableWidth = pageWidth - xStart - 10;
+    let boxWidth = availableWidth / labels.length;
+    let boxHeight = 24;
+
+    labels.forEach((l, idx) => {
+      let x = xStart + idx * boxWidth;
+      doc.rect(x, y, boxWidth, boxHeight);
+      doc.text(l, x + 2, y + 7);
+      doc.text("Date :", x + 2, y + 15);
+    });
+  }
+
+  let first = filteredData[0];
+  drawHeader(first);
+  drawTable(65);
+  drawBottomSection();
+
+  let filename = `note_frais_${filteredData[0]["Tech ID"] || "tech"}.pdf`;
+  doc.save(filename);
+
+  function loadImage(url) {
+    return new Promise((resolve) => {
+      let img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => {
+        let canvas = document.createElement("canvas");
+        canvas.width = img.width; canvas.height = img.height;
+        let ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.src = url;
+    });
+  }
+}
+
+async function generateMissionOrder() {
+  if (filteredData.length === 0) {
+    alert("⚠️ Aucun enregistrement trouvé pour générer l'Ordre de Mission.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("portrait");
+
+  let pageWidth = doc.internal.pageSize.getWidth();
+  let pageHeight = doc.internal.pageSize.getHeight();
+
+  let maxLinesPerPage = 8;
+  let missionChunks = chunkArray(filteredData, maxLinesPerPage);
+
+  for (let pageIndex = 0; pageIndex < missionChunks.length; pageIndex++) {
+    if (pageIndex > 0) doc.addPage();
+
+    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+    const logoUrl =
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Burger_King_logo_%281999%E2%80%932020%29.svg/1200px-Burger_King_logo_%281999%E2%80%932020%29.svg.png";
+    const logoImg = await loadImage(logoUrl);
+    doc.addImage(logoImg, "PNG", 12, 12, 20, 20);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("ORDRE DE MISSION", pageWidth / 2, 22, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text("GENERAL FIRST FOOD SERVICES", pageWidth - 70, 15);
+    doc.text("RH-V02-2016", pageWidth - 70, 20);
+    let today = new Date().toLocaleDateString("fr-FR");
+    doc.text(`Date : ${today}`, pageWidth - 70, 25);
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("INFORMATIONS SUR L'EMPLOYE", 14, 40);
+    doc.rect(12, 32, pageWidth - 24, 35);
+
+    let first = filteredData[0];
+    let techName = (first["Tech Name"] || "").split(" ");
+
+    doc.setFont("helvetica", "normal");
+    doc.text(`Matricule : ${first["Tech ID"] || ""}`, 14, 48);
+    doc.text(`NOM : ${techName[0] || ""}`, 14, 55);
+    doc.text(`PRENOM : ${techName.slice(1).join(" ") || ""}`, 80, 55);
+    doc.text("DEPARTEMENT : IT", 14, 62);
+    doc.text("FONCTION : IT", 80, 62);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Objet de mission :", 14, 78);
+
+    let startY = 85;
+    let currentMissions = missionChunks[pageIndex];
+
+    doc.setFont("helvetica", "normal");
+
+    currentMissions.forEach((row) => {
+      let start = formatDateOnly(row["Start Date"]);
+      let end = formatDateOnly(row["End Date"]);
+      let motifText = row["Motif"] || "Installation – Réparation";
+      let description = row["Description"] ? ` (${row["Description"]})` : "";
+      let textFull = `${row["Restaurant"] || ""} - ${motifText}${description}`;
+
+      doc.text(`Date Départ : ${start}`, 14, startY);
+      doc.text(`Date Retour : ${end}`, 70, startY);
+
+      let wrappedMotif = doc.splitTextToSize(textFull, 60);
+      doc.text(wrappedMotif, 130, startY);
+
+      startY += Math.max(10, wrappedMotif.length * 5);
+    });
+
+    while (currentMissions.length < maxLinesPerPage) {
+      doc.text("Date Départ : ___________", 14, startY);
+      doc.text("Date Retour : ___________", 70, startY);
+      doc.text("__________________________", 130, startY);
+      startY += 10;
+      currentMissions.push({});
+    }
+
+    startY += 5;
+    doc.setFont("helvetica", "bold");
+    doc.text("Frais Déplacement :", 14, startY);
+    doc.rect(12, startY - 8, pageWidth - 24, 15);
+
+    doc.setFont("helvetica", "normal");
+    doc.rect(65, startY - 4, 4, 4);
+    doc.text("Oui", 72, startY);
+    doc.rect(90, startY - 4, 4, 4);
+    doc.text("Non", 97, startY);
+    doc.text("Montant d'avance : ____________", 140, startY);
+
+    startY += 20;
+    doc.setFont("helvetica", "bold");
+    doc.text("Moyen de transport utilisé :", 14, startY);
+    doc.rect(12, startY - 8, pageWidth - 24, 20);
+
+    doc.setFont("helvetica", "normal");
+    doc.rect(80, startY - 4, 4, 4);
+    doc.text("Véhicule Personnel", 87, startY);
+    doc.rect(140, startY - 4, 4, 4);
+    doc.text("Véhicule Professionnel", 147, startY);
+    startY += 8;
+    doc.rect(80, startY - 4, 4, 4);
+    doc.text("Autre :", 87, startY);
+
+    let sigY = pageHeight - 60;
+    doc.rect(12, sigY - 10, pageWidth - 24, 40);
+    doc.setFont("helvetica", "bold");
+    doc.text("INTERESSE(E)", 30, sigY);
+    doc.text("DEPARTEMENT MANAGER", pageWidth / 2 - 20, sigY);
+    doc.text("GENERAL MANAGER", pageWidth - 70, sigY);
+
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      "*Avant la mission, validation obligatoire par le supérieur hiérarchique et le DG.",
+      14,
+      pageHeight - 15
+    );
+  }
+
+  let filename = `ordre_mission_${filteredData[0]["Tech ID"] || "tech"}.pdf`;
+  doc.save(filename);
+
+  function loadImage(url) {
+    return new Promise((resolve) => {
+      let img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => {
+        let canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        let ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.src = url;
+    });
+  }
+
+  function chunkArray(arr, size) {
+    let result = [];
+    for (let i = 0; i < arr.length; i += size) {
+      result.push(arr.slice(i, i + size));
+    }
+    return result;
+  }
+}
+</script>
 </body>
 </html>

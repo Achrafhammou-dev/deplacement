@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 Intervention Reports</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body {
+      background: #0f1113;
+      color: #e8eef6;
+      font-family: "Segoe UI", sans-serif;
+    }
+    h2, h4 {
+      color: #ffcc00;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(255,204,0,0.3);
+    }
+    .table {
+      background: #151515;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    }
+    .table thead {
+      background: linear-gradient(90deg,#ff7e00,#ffcc00);
+      color: #121212;
+    }
+    .table tbody tr:hover {
+      background: rgba(255,204,0,0.06);
+      transform: scale(1.01);
+    }
+    .btn {
+      border-radius: 10px;
+      font-weight: 700;
+      transition: all .25s ease;
+    }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 0 18px rgba(255,204,0,0.12); }
+    .container { margin-top: 30px; }
+    .report-section { margin-top: 40px; }
+    table th, table td { font-size: 14px; cursor: pointer; }
+    th.sortable:hover { background: #343a40 !important; color: #ffc107; }
+    th .arrow { font-size: 12px; margin-left: 5px; }
+    /* AUTH MODAL STYLING */
+    .modal-backdrop.show { background-color: rgba(0,0,0,0.7); }
+    .auth-modal .modal-content {
+      background: linear-gradient(180deg,#121214,#17181a);
+      border: 1px solid rgba(255,204,0,0.06);
+      color: #e9eef6;
+      box-shadow: 0 10px 50px rgba(0,0,0,0.7);
+      border-radius: 14px;
+    }
+    .auth-modal .modal-header { border-bottom: 0; }
+    .auth-modal .form-control {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      color: #fff;
+    }
+    .badge-role { background: rgba(255,204,0,0.12); color: #ffcc00; border-radius: 8px; padding: 6px 8px; font-weight: 700; }
+    /* small helpers */
+    .muted { color: #9aa3b2; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="text-center mb-4">📋 Intervention Reports</h2>
+
+    <!-- Search and Date Range -->
+    <div class="row g-3 mb-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Search by ID / Name</label>
+        <input type="text" id="searchId" class="form-control" placeholder="Ex: 024099 or Amine Belkhadim">
+        <div class="muted mt-1">Type a name or matricule and click <strong>Apply Filters</strong>.</div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Start Date</label>
+        <input type="date" id="startDate" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">End Date</label>
+        <input type="date" id="endDate" class="form-control">
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-primary w-100" onclick="applyFilters()">🔎 Apply Filters</button>
+      </div>
+    </div>
+
+    <!-- Interventions Table -->
+    <div class="report-section">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="mb-0">📊 Interventions</h4>
+        <div>
+          <span id="currentUserBadge" class="badge-role">Not logged</span>
+        </div>
+      </div>
+
+      <table class="table table-bordered table-striped" id="interventionTable">
+        <thead class="table-dark">
+          <tr>
+            <th class="sortable" onclick="sortTable('Tech ID')">Tech ID <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Tech Name')">Tech Name <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Intervention ID')">Intervention ID <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Restaurant')">Restaurant <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Start Date')">Start Date <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('End Date')">End Date <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Nature')">Nature <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Motif')">Motif <span class="arrow">↕</span></th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-success mt-3" onclick="printInterventions()">🖨️ Print Interventions</button>
+        <button class="btn btn-warning mt-3" onclick="generateMissionOrder()">📄 Générer Ordre de Mission</button>
+        <button class="btn btn-info mt-3" onclick="generateExpenseReport()">📄 Générer Note de Frais</button>
+      </div>
+
+      <div id="pagination" class="mt-3 d-flex justify-content-center"></div>
+    </div>
+  </div>
+
+  <!-- AUTHENTICATION MODAL (login) -->
+  <div class="modal fade auth-modal" id="authModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3">
+        <div class="modal-header border-0">
+          <div>
+            <h5 class="modal-title">🔐 Authentification requise</h5>
+            <div class="muted">Entrez votre matricule (ou nom) et mot de passe.</div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label">Matricule ou Nom</label>
+            <input id="authId" class="form-control" placeholder="Ex: 024099 ou Amine Belkhadim">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Mot de passe</label>
+            <input id="authPassword" type="password" class="form-control" placeholder="Ex: amine123">
+          </div>
+          <div id="authError" class="text-danger small" style="display:none;">Identifiants invalides — réessayez.</div>
+          <div class="mt-2 muted">Astuce: mots de passe générés : <code>firstname123</code> (ex: <strong>amine123</strong>).</div>
+        </div>
+        <div class="modal-footer border-0">
+          <button class="btn btn-secondary" onclick="showDemoCredentials()">Voir comptes</button>
+          <button class="btn btn-primary" onclick="performLogin()">Se connecter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASSWORD PROMPT MODAL (for viewing another user's results) -->
+  <div class="modal fade auth-modal" id="promptPasswordModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3">
+        <div class="modal-header border-0">
+          <h5 class="modal-title">🔑 Saisir le mot de passe pour accéder</h5>
+        </div>
+        <div class="modal-body">
+          <div id="promptTarget" class="mb-2 muted"></div>
+          <div class="mb-3">
+            <label class="form-label">Mot de passe</label>
+            <input id="promptPassword" type="password" class="form-control" placeholder="Mot de passe pour l'utilisateur ciblé">
+          </div>
+          <div id="promptError" class="text-danger small" style="display:none;">Mot de passe incorrect.</div>
+        </div>
+        <div class="modal-footer border-0">
+          <button class="btn btn-secondary" onclick="bootstrap.Modal.getInstance(document.getElementById('promptPasswordModal')).hide()">Annuler</button>
+          <button class="btn btn-primary" onclick="submitPromptPassword()">Valider</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ===== USERS / PASSWORDS config =====
+  // Provided mapping (matricule -> name), + passwords generated (firstname + 123)
+  const USERS = {
+    "024099": "Amine Belkhadim",
+    "03924":  "Mehdi Ezzahri",
+    "012712": "Youssef Fahsi",
+    "045323": "Achraf Hammou",
+    "001008": "Ilyass Elidrissi"
+  };
+
+  // Build lookup maps: id -> {name, password}, nameLower -> id
+  const accountsById = {};
+  const nameToId = {};
+  Object.entries(USERS).forEach(([id, fullname]) => {
+    const firstname = (fullname.split(" ")[0] || "").toLowerCase();
+    const password = `${firstname}123`; // simple generated code as requested
+    accountsById[id] = { id, name: fullname, password, role: "user" };
+    nameToId[fullname.toLowerCase()] = id;
+  });
+
+  // Add an admin account
+  const ADMIN_ID = "000000";
+  accountsById[ADMIN_ID] = { id: ADMIN_ID, name: "Administrator", password: "admin123", role: "admin" };
+
+  // Convenience: allow lookup by id or by name. Also support searching by partial name.
+  function findAccountByKey(key) {
+    if (!key) return null;
+    key = String(key).trim();
+    if (accountsById[key]) return accountsById[key];
+    // try case-insensitive exact name
+    const lower = key.toLowerCase();
+    if (nameToId[lower]) return accountsById[nameToId[lower]];
+    // try partial name match (first or last name)
+    for (const id of Object.keys(accountsById)) {
+      const acc = accountsById[id];
+      if (acc.name.toLowerCase().includes(lower)) return acc;
+    }
+    return null;
+  }
+
+  // ===== State =====
+  let allData = [];
+  let filteredData = [];
+  let sortDirections = {};
+  let currentPage = 1;
+  const rowsPerPage = 25;
+
+  // The logged in user:
+  let currentUser = null;
+  // A set of user IDs we've been authorized to view temporarily (includes currentUser by default after login)
+  let allowedView = new Set();
+
+  // Temporary variable for "prompt password to view target"
+  let promptTargetAccount = null;
+
+  // Elements / bootstrap modal instances
+  document.addEventListener("DOMContentLoaded", () => {
+    // show auth modal on load
+    const authModalEl = document.getElementById('authModal');
+    const authModal = new bootstrap.Modal(authModalEl);
+    authModal.show();
+
+    // load data
+    fetch("https://opensheet.elk.sh/1xUiaofSCIt6UgsIfqrLXN7FkcMaU-tLoKZmooBzEGFg/Interventions")
+      .then(res => res.json())
+      .then(data => {
+        allData = data;
+        // by default hide until logged-in; but still keep loaded
+        filteredData = [];
+        renderTable(filteredData);
+      })
+      .catch(err => {
+        console.error("❌ Error loading data:", err);
+        allData = [];
+        filteredData = [];
+        renderTable(filteredData);
+      });
+
+    // prepare keyboard Enter for login
+    document.getElementById('authPassword').addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') performLogin();
+    });
+  });
+
+  function showDemoCredentials() {
+    // Show a helpful list inside the modal (not storing secrets externally)
+    const demo = Object.values(accountsById).map(a => `${a.id} → ${a.name} (pwd: ${a.password})`).join('\n');
+    alert("Comptes de démonstration :\n\n" + demo + `\n\nAdmin: ${accountsById["000000"].id} / ${accountsById["000000"].password}`);
+  }
+
+  function performLogin() {
+    const idInput = document.getElementById('authId').value.trim();
+    const pwdInput = document.getElementById('authPassword').value.trim();
+    const authError = document.getElementById('authError');
+    authError.style.display = 'none';
+
+    const account = findAccountByKey(idInput);
+    if (!account || pwdInput !== account.password) {
+      authError.style.display = 'block';
+      return;
+    }
+
+    // success
+    currentUser = { id: account.id, name: account.name, role: account.role || 'user' };
+    allowedView = new Set([currentUser.id]); // self allowed
+    if (currentUser.role === 'admin') {
+      // admin can see everything
+      Object.keys(accountsById).forEach(k => allowedView.add(k));
+    }
+    // update badge and close modal
+    document.getElementById('currentUserBadge').innerText = `${currentUser.name} (${currentUser.role==='admin'?'ADMIN':'user'})`;
+    bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+
+    // render with default: show only user interventions (unless admin)
+    if (currentUser.role === 'admin') filteredData = [...allData];
+    else filteredData = allData.filter(r => (r["Tech ID"] || "").toString() === currentUser.id || (r["Tech Name"] || "").toLowerCase().includes(currentUser.name.toLowerCase()));
+
+    currentPage = 1;
+    renderTable(filteredData);
+  }
+
+  // when someone types a different name/ID and wants to view, prompt for that user's password (unless admin)
+  function promptPasswordForTarget(targetKey) {
+    // find account
+    const acc = findAccountByKey(targetKey);
+    if (!acc) {
+      // if not a known protected account, proceed normally
+      applyFiltersAfterAuthOverride(targetKey);
+      return;
+    }
+    promptTargetAccount = acc;
+    document.getElementById('promptTarget').innerText = `Accès pour : ${acc.name} (${acc.id})`;
+    document.getElementById('promptPassword').value = '';
+    document.getElementById('promptError').style.display = 'none';
+    const pm = new bootstrap.Modal(document.getElementById('promptPasswordModal'));
+    pm.show();
+    // focus
+    setTimeout(() => document.getElementById('promptPassword').focus(), 250);
+  }
+
+  function submitPromptPassword() {
+    const pwd = document.getElementById('promptPassword').value.trim();
+    const errEl = document.getElementById('promptError');
+    errEl.style.display = 'none';
+    if (!promptTargetAccount) return;
+
+    // check password matches that account
+    if (pwd === promptTargetAccount.password) {
+      // authorize view for this session
+      allowedView.add(promptTargetAccount.id);
+      bootstrap.Modal.getInstance(document.getElementById('promptPasswordModal')).hide();
+      // now apply filters and show results for that target
+      applyFiltersAfterAuthOverride(promptTargetAccount.name);
+      promptTargetAccount = null;
+    } else {
+      errEl.style.display = 'block';
+    }
+  }
+
+  function applyFilters() {
+    // If not logged in, force login modal
+    if (!currentUser) {
+      const authModal = new bootstrap.Modal(document.getElementById('authModal'));
+      authModal.show();
+      return;
+    }
+
+    // If user typed a search key that targets another account and is not allowed, prompt password
+    const searchRaw = document.getElementById('searchId').value.trim();
+    if (searchRaw) {
+      const targetAcc = findAccountByKey(searchRaw);
+      if (targetAcc && !allowedView.has(targetAcc.id) && currentUser.role !== 'admin') {
+        // need password for viewing this other user's data
+        promptPasswordForTarget(searchRaw);
+        return; // wait for prompt result
+      }
+    }
+
+    // otherwise proceed
+    applyFiltersAfterAuthOverride(searchRaw);
+  }
+
+  function applyFiltersAfterAuthOverride(searchRaw) {
+    // Build date range inclusive
+    const startVal = document.getElementById('startDate').value;
+    const endVal = document.getElementById('endDate').value;
+    let startDate = startVal ? new Date(startVal + "T00:00:00") : null;
+    let endDate   = endVal ? new Date(endVal + "T23:59:59") : null;
+
+    // If both provided and start > end, swap
+    if (startDate && endDate && startDate > endDate) {
+      const tmp = startDate;
+      startDate = endDate;
+      endDate = tmp;
+    }
+
+    let keyLower = (searchRaw || "").toLowerCase();
+
+    filteredData = allData.filter(row => {
+      // First: enforce visibility rules
+      const techId = (row["Tech ID"] || "").toString();
+      const techName = (row["Tech Name"] || "").toString();
+      if (currentUser.role !== 'admin') {
+        // allow only rows where (techId is in allowedView) OR (techName matches any allowedView name)
+        if (!allowedView.has(techId) && !Array.from(allowedView).some(id=>accountsById[id] && techName.toLowerCase().includes((accountsById[id].name||"").toLowerCase()))) {
+          return false;
+        }
+      }
+
+      // Search filter (if any)
+      let matchSearch = true;
+      if (keyLower) {
+        matchSearch = (
+          (techId || "").toLowerCase().includes(keyLower) ||
+          (techName || "").toLowerCase().includes(keyLower) ||
+          (row["Intervention ID"] || "").toLowerCase().includes(keyLower) ||
+          (row["Restaurant"] || "").toLowerCase().includes(keyLower) ||
+          (row["Description"] || "").toLowerCase().includes(keyLower) ||
+          (row["Motif"] || "").toLowerCase().includes(keyLower)
+        );
+      }
+
+      // Date filter: use Start Date inclusion for filter (as requested)
+      let matchesDate = true;
+      if (startDate || endDate) {
+        const d = new Date(row["Start Date"]);
+        if (isNaN(d)) matchesDate = false;
+        else {
+          if (startDate && d < startDate) matchesDate = false;
+          if (endDate && d > endDate) matchesDate = false;
+        }
+      }
+
+      return matchSearch && matchesDate;
+    });
+
+    // Reset pagination
+    currentPage = 1;
+    renderTable(filteredData);
+  }
+
+  function formatDateOnly(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (isNaN(d)) return dateStr;
+    return d.toLocaleDateString("fr-FR"); // dd/mm/yyyy
+  }
+
+  function renderTable(data) {
+    const tbody = document.querySelector("#interventionTable tbody");
+    tbody.innerHTML = "";
+
+    // pagination slicing
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, data.length);
+    const pageData = data.slice(startIndex, endIndex);
+
+    if (pageData.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center muted">Aucune intervention à afficher — vérifiez le filtre ou vos droits d'accès.</td></tr>`;
+    } else {
+      pageData.forEach(row => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${row["Tech ID"] || ""}</td>
+            <td>${row["Tech Name"] || ""}</td>
+            <td>${row["Intervention ID"] || ""}</td>
+            <td>${row["Restaurant"] || ""}</td>
+            <td>${formatDateOnly(row["Start Date"])}</td>
+            <td>${formatDateOnly(row["End Date"])}</td>
+            <td>${row["Nature"] || ""}</td>
+            <td>${row["Motif"] || ""}</td>
+            <td>${row["Description"] || ""}</td>
+          </tr>`;
+      });
+    }
+    renderPagination(data.length);
+  }
+
+  function renderPagination(totalRows) {
+    const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+
+    const prevBtn = `<button class="btn btn-outline-light mx-1" onclick="changePage(-1)" ${currentPage===1?"disabled":""}>⬅ Prev</button>`;
+    const nextBtn = `<button class="btn btn-outline-light mx-1" onclick="changePage(1)" ${currentPage===totalPages?"disabled":""}>Next ➡</button>`;
+
+    pagination.innerHTML = prevBtn + `<span class="mx-2 align-self-center">Page ${currentPage} / ${totalPages}</span>` + nextBtn;
+  }
+
+  function changePage(direction) {
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
+    currentPage = Math.min(Math.max(1, currentPage + direction), totalPages);
+    renderTable(filteredData);
+  }
+
+  // ===== Sorting =====
+  function sortTable(column) {
+    if (!filteredData || filteredData.length === 0) return;
+    if (!sortDirections[column]) sortDirections[column] = "asc";
+    else sortDirections[column] = sortDirections[column] === "asc" ? "desc" : "asc";
+
+    filteredData.sort((a, b) => {
+      let valA = (a[column] || "").toString();
+      let valB = (b[column] || "").toString();
+      // dates sort
+      if (column.includes("Date")) {
+        valA = new Date(valA || 0);
+        valB = new Date(valB || 0);
+      } else {
+        valA = valA.toLowerCase();
+        valB = valB.toLowerCase();
+      }
+      if (valA < valB) return sortDirections[column] === "asc" ? -1 : 1;
+      if (valA > valB) return sortDirections[column] === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    currentPage = 1;
+    renderTable(filteredData);
+  }
+
+  // ===== PDF / Printing / Mission / Expense functions =====
+  // I preserved your existing implementations but made them respect filteredData and currentUser visibility.
+  async function generateExpenseReport() {
+    if (!filteredData || filteredData.length === 0) {
+      alert("⚠️ Aucun enregistrement trouvé pour générer la Note de Frais.");
+      return;
+    }
+
+    const sheetId = "1xUiaofSCIt6UgsIfqrLXN7FkcMaU-tLoKZmooBzEGFg";
+    let expenses = [];
+    try {
+      expenses = await fetch(`https://opensheet.elk.sh/${sheetId}/Expenses`).then(r => r.json());
+    } catch(e) {
+      console.warn("Erreur chargement expenses:", e);
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("landscape");
+    let pageWidth = doc.internal.pageSize.getWidth();
+    let pageHeight = doc.internal.pageSize.getHeight();
+    let bottomMargin = 60;
+
+    const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Burger_King_logo_%281999%E2%80%932020%29.svg/1200px-Burger_King_logo_%281999%E2%80%932020%29.svg.png";
+    const logoImg = await loadImage(logoUrl);
+
+    function drawHeader(first) {
+      doc.addImage(logoImg, "PNG", 10, 10, 25, 25);
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(9);
+      doc.text("Travel Expense", 40, 16);
+      doc.setFont("helvetica", "bolditalic");
+      doc.setFontSize(11);
+      doc.text("Traveling Expenses Form", 40, 24);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text("GENERAL FIRST FOOD SERVICES S.A.S", pageWidth / 2, 12, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      let xInfo = pageWidth - 80;
+      doc.rect(xInfo, 15, 70, 25);
+      doc.text(`N° Matricule : ${first["Tech ID"] || ""}`, xInfo + 3, 21);
+      let techName = (first["Tech Name"] || "").split(" ");
+      doc.text(`Nom : ${techName[0] || ""}`, xInfo + 3, 28);
+      doc.text(`Prénom : ${techName.slice(1).join(" ") || ""}`, xInfo + 3, 35);
+      let today = new Date().toLocaleDateString("fr-FR");
+      doc.rect(xInfo, 45, 70, 10);
+      doc.text(today, xInfo + 25, 52);
+    }
+
+    let grouped = {};
+    let diversDetails = {};
+
+    expenses.forEach(exp => {
+      if (filteredData.some(f => f["Intervention ID"] === exp["Intervention ID"])) {
+        let matchedIntervention = filteredData.find(f => f["Intervention ID"] === exp["Intervention ID"]);
+        if (!matchedIntervention) return;
+
+        let jour = new Date(matchedIntervention["Start Date"]).getDate();
+        let mois = new Date(matchedIntervention["Start Date"]).getMonth() + 1;
+        let libelle = matchedIntervention["Restaurant"] || "";
+        let key = `${jour}-${mois}-${libelle}`;
+        if (!grouped[key]) {
+          grouped[key] = { jour, mois, libelle, train: 0, autoroute: 0, taxi: 0, kms: 0, montant: 0, hotel: 0, repas: 0, divers: 0 };
+          diversDetails[key] = [];
+        }
+
+        let amount = parseFloat(exp["Montant"] || 0);
+        let nature = (exp["Nature"] || "").trim().toLowerCase();
+
+        if (nature.includes("taxi")) grouped[key].taxi += amount;
+        else if (nature.includes("train")) grouped[key].train += amount;
+        else if (nature.includes("meal") || nature.includes("repas")) grouped[key].repas += amount;
+        else if (nature.includes("hotel") || nature.includes("hostel")) grouped[key].hotel += amount;
+        else if (nature.includes("autoroute")) grouped[key].autoroute += amount;
+        else if (nature.includes("kms")) {
+          let kmsValue = parseFloat(exp["Montant"] || 0);
+          grouped[key].kms += kmsValue;
+          grouped[key].montant += kmsValue * 3;
+        } else {
+          grouped[key].divers += amount;
+          diversDetails[key].push(`${exp["Description"] || "Autre"} | ${amount} dhs`);
+        }
+      }
+    });
+
+    let rows = Object.values(grouped).map(g => {
+      let total = g.train + g.autoroute + g.taxi + g.montant + g.hotel + g.repas + g.divers;
+      return [ g.jour, g.mois, g.libelle, g.train.toFixed(2), g.autoroute.toFixed(2), g.taxi.toFixed(2), g.kms.toFixed(0), g.montant.toFixed(2), g.hotel.toFixed(2), g.repas.toFixed(2), g.divers.toFixed(2), total.toFixed(2) ];
+    });
+
+    let totalGeneral = rows.reduce((acc, r) => acc + parseFloat(r[11] || 0), 0);
+
+    function drawTable(startY) {
+      let colWidths = [15, 15, 45, 20, 25, 20, 15, 25, 25, 25, 25, 25];
+      let headers = ["JOUR","MOIS","Libellé de la dépense","Train","Autoroute","Taxi","Kms","Montant","HOTEL","REPAS","DIVERS TTC","TOTAL"];
+      let y = startY;
+      let rowHeight = 8;
+
+      function drawHeaderRow() {
+        let x = 10;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        headers.forEach((h, i) => {
+          doc.rect(x, y, colWidths[i], 10);
+          doc.text(h, x + colWidths[i]/2, y + 7, { align: "center" });
+          x += colWidths[i];
+        });
+        y += 10;
+      }
+
+      drawHeaderRow();
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+
+      rows.forEach((r, idx) => {
+        if (y + rowHeight + bottomMargin > pageHeight) {
+          doc.addPage();
+          y = 20;
+          drawHeaderRow();
+        }
+        let x = 10;
+        r.forEach((cell, i) => {
+          doc.rect(x, y, colWidths[i], rowHeight);
+          doc.text(String(cell), x + colWidths[i]/2, y + 6, { align: "center" });
+          x += colWidths[i];
+        });
+        y += rowHeight;
+      });
+
+      while (y + rowHeight + bottomMargin < pageHeight - 10) {
+        let x = 10;
+        headers.forEach((_, i) => {
+          doc.rect(x, y, colWidths[i], rowHeight);
+          x += colWidths[i];
+        });
+        y += rowHeight;
+      }
+
+      let x = 10;
+      headers.forEach((_, i) => {
+        doc.rect(x, y, colWidths[i], rowHeight);
+        if (i === headers.length - 2) doc.text("TOTAL", x + colWidths[i]/2, y + 6, { align: "center" });
+        if (i === headers.length - 1) doc.text(totalGeneral.toFixed(2), x + colWidths[i]/2, y + 6, { align: "center" });
+        x += colWidths[i];
+      });
+      return y + rowHeight;
+    }
+
+    function drawBottomSection() {
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let y = pageHeight - 35;
+
+      doc.rect(10, y, 90, 12);
+      doc.text("N° Pièce :", 12, y + 7);
+
+      doc.rect(10, y + 12, 90, 12);
+      doc.text("Visa Comptabilité :", 12, y + 19);
+
+      let labels = ["Signature Émetteur :","Visa Responsable :","Visa Finance Manager :","Visa General Manager :"];
+      let xStart = 110;
+      let availableWidth = pageWidth - xStart - 10;
+      let boxWidth = availableWidth / labels.length;
+      let boxHeight = 24;
+
+      labels.forEach((l, idx) => {
+        let x = xStart + idx * boxWidth;
+        doc.rect(x, y, boxWidth, boxHeight);
+        doc.text(l, x + 2, y + 7);
+        doc.text("Date :", x + 2, y + 15);
+      });
+    }
+
+    let first = filteredData[0];
+    drawHeader(first);
+    drawTable(65);
+    drawBottomSection();
+
+    let filename = `note_frais_${filteredData[0]["Tech ID"] || "tech"}.pdf`;
+    doc.save(filename);
+
+    function loadImage(url) {
+      return new Promise((resolve) => {
+        let img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => {
+          let canvas = document.createElement("canvas");
+          canvas.width = img.width; canvas.height = img.height;
+          let ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        img.src = url;
+      });
+    }
+  }
+
+  // printInterventions, generateMissionOrder: we reuse your functions but ensure they use filteredData
+  function printInterventions() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("landscape");
+    doc.setFontSize(16);
+    doc.text("Intervention Report", 14, 15);
+
+    const tableColumn = ["Tech ID","Tech Name","Intervention ID","Restaurant","Start Date","End Date","Nature","Motif","Description"];
+    const tableRows = [];
+
+    filteredData.forEach(row => {
+      tableRows.push([
+        row["Tech ID"] || "",
+        row["Tech Name"] || "",
+        row["Intervention ID"] || "",
+        row["Restaurant"] || "",
+        row["Start Date"] || "",
+        row["End Date"] || "",
+        row["Nature"] || "",
+        row["Motif"] || "",
+        row["Description"] || ""
+      ]);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 25,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [0, 0, 0] }
+    });
+
+    let filename = "int_report_all.pdf";
+    let searchId = document.getElementById("searchId").value.trim();
+    let startDate = document.getElementById("startDate").value;
+
+    if (searchId) {
+      filename = `int_report_${searchId.replace(/\s+/g,'_')}.pdf`;
+    } else if (startDate) {
+      let d = new Date(startDate);
+      let mm = String(d.getMonth() + 1).padStart(2, "0");
+      let yy = String(d.getFullYear()).slice(-2);
+      filename = `int_report${mm}${yy}.pdf`;
+    }
+
+    doc.save(filename);
+  }
+
+  async function generateMissionOrder() {
+    if (filteredData.length === 0) {
+      alert("⚠️ Aucun enregistrement trouvé pour générer l'Ordre de Mission.");
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("portrait");
+    let pageWidth = doc.internal.pageSize.getWidth();
+    let pageHeight = doc.internal.pageSize.getHeight();
+    let maxLinesPerPage = 8;
+    let missionChunks = chunkArray(filteredData, maxLinesPerPage);
+
+    for (let pageIndex = 0; pageIndex < missionChunks.length; pageIndex++) {
+      if (pageIndex > 0) doc.addPage();
+      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+      const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Burger_King_logo_%281999%E2%80%932020%29.svg/1200px-Burger_King_logo_%281999%E2%80%932020%29.svg.png";
+      const logoImg = await loadImage(logoUrl);
+      doc.addImage(logoImg, "PNG", 12, 12, 20, 20);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("ORDRE DE MISSION", pageWidth / 2, 22, { align: "center" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text("GENERAL FIRST FOOD SERVICES", pageWidth - 70, 15);
+      doc.text("RH-V02-2016", pageWidth - 70, 20);
+      let today = new Date().toLocaleDateString("fr-FR");
+      doc.text(`Date : ${today}`, pageWidth - 70, 25);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("INFORMATIONS SUR L'EMPLOYE", 14, 40);
+      doc.rect(12, 32, pageWidth - 24, 35);
+      let first = filteredData[0] || {};
+      let techName = (first["Tech Name"] || "").split(" ");
+      doc.setFont("helvetica", "normal");
+      doc.text(`Matricule : ${first["Tech ID"] || ""}`, 14, 48);
+      doc.text(`NOM : ${techName[0] || ""}`, 14, 55);
+      doc.text(`PRENOM : ${techName.slice(1).join(" ") || ""}`, 80, 55);
+      doc.text("DEPARTEMENT : IT", 14, 62);
+      doc.text("FONCTION : IT", 80, 62);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Objet de mission :", 14, 78);
+      let startY = 85;
+      let currentMissions = missionChunks[pageIndex];
+      doc.setFont("helvetica", "normal");
+
+      currentMissions.forEach((row) => {
+        let start = formatDateOnly(row["Start Date"]);
+        let end = formatDateOnly(row["End Date"]);
+        let motifText = row["Motif"] || "Installation – Réparation";
+        let description = row["Description"] ? ` (${row["Description"]})` : "";
+        let textFull = `${row["Restaurant"] || ""} - ${motifText}${description}`;
+
+        doc.text(`Date Départ : ${start}`, 14, startY);
+        doc.text(`Date Retour : ${end}`, 70, startY);
+
+        let wrappedMotif = doc.splitTextToSize(textFull, 60);
+        doc.text(wrappedMotif, 130, startY);
+
+        startY += Math.max(10, wrappedMotif.length * 5);
+      });
+
+      while (currentMissions.length < maxLinesPerPage) {
+        doc.text("Date Départ : ___________", 14, startY);
+        doc.text("Date Retour : ___________", 70, startY);
+        doc.text("__________________________", 130, startY);
+        startY += 10;
+        currentMissions.push({});
+      }
+
+      startY += 5;
+      doc.setFont("helvetica", "bold");
+      doc.text("Frais Déplacement :", 14, startY);
+      doc.rect(12, startY - 8, pageWidth - 24, 15);
+      doc.setFont("helvetica", "normal");
+      doc.rect(65, startY - 4, 4, 4);
+      doc.text("Oui", 72, startY);
+      doc.rect(90, startY - 4, 4, 4);
+      doc.text("Non", 97, startY);
+      doc.text("Montant d'avance : ____________", 140, startY);
+
+      startY += 20;
+      doc.setFont("helvetica", "bold");
+      doc.text("Moyen de transport utilisé :", 14, startY);
+      doc.rect(12, startY - 8, pageWidth - 24, 20);
+      doc.setFont("helvetica", "normal");
+      doc.rect(80, startY - 4, 4, 4);
+      doc.text("Véhicule Personnel", 87, startY);
+      doc.rect(140, startY - 4, 4, 4);
+      doc.text("Véhicule Professionnel", 147, startY);
+      startY += 8;
+      doc.rect(80, startY - 4, 4, 4);
+      doc.text("Autre :", 87, startY);
+
+      let sigY = pageHeight - 60;
+      doc.rect(12, sigY - 10, pageWidth - 24, 40);
+      doc.setFont("helvetica", "bold");
+      doc.text("INTERESSE(E)", 30, sigY);
+      doc.text("DEPARTEMENT MANAGER", pageWidth / 2 - 20, sigY);
+      doc.text("GENERAL MANAGER", pageWidth - 70, sigY);
+
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.text("*Avant la mission, validation obligatoire par le supérieur hiérarchique et le DG.", 14, pageHeight - 15);
+    }
+
+    let filename = `ordre_mission_${filteredData[0] && filteredData[0]["Tech ID"] ? filteredData[0]["Tech ID"] : "tech"}.pdf`;
+    doc.save(filename);
+
+    function loadImage(url) {
+      return new Promise((resolve) => {
+        let img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => {
+          let canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          let ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        img.src = url;
+      });
+    }
+
+    function chunkArray(arr, size) {
+      let result = [];
+      for (let i = 0; i < arr.length; i += size) result.push(arr.slice(i, i + size));
+      return result;
+    }
+  }
+
+  // helper loadImage used in many places
+  function loadImage(url) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = img.width; c.height = img.height;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(c.toDataURL('image/png'));
+      };
+      img.onerror = () => resolve('');
+      img.src = url;
+    });
+  }
+
+  // Expose some functions to global to be callable from HTML attributes
+  window.applyFilters = applyFilters;
+  window.sortTable = sortTable;
+  window.changePage = changePage;
+  window.printInterventions = printInterventions;
+  window.generateMissionOrder = generateMissionOrder;
+  window.generateExpenseReport = generateExpenseReport;
+  window.showDemoCredentials = showDemoCredentials;
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
