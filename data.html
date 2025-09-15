@@ -71,7 +71,7 @@
     <div class="row g-3 mb-3 align-items-end">
       <div class="col-md-3">
         <label class="form-label">Search by ID / Name</label>
-        <input type="text" id="searchId" class="form-control" placeholder="Ex: 024099 or Amine Belkhadim">
+        <input type="text" id="searchId" class="form-control" placeholder="Ex: ID or Name">
         <div class="muted mt-1">Type a name or matricule and click <strong>Apply Filters</strong>.</div>
       </div>
       <div class="col-md-3">
@@ -136,17 +136,17 @@
         <div class="modal-body">
           <div class="mb-2">
             <label class="form-label">Matricule ou Nom</label>
-            <input id="authId" class="form-control" placeholder="Ex: 024099 ou Amine Belkhadim">
+            <input id="authId" class="form-control" placeholder="Ex: ID ou Name">
           </div>
           <div class="mb-3">
             <label class="form-label">Mot de passe</label>
-            <input id="authPassword" type="password" class="form-control" placeholder="Ex: amine123">
+            <input id="authPassword" type="password" class="form-control" placeholder="tapez le mot de passe">
           </div>
           <div id="authError" class="text-danger small" style="display:none;">Identifiants invalides — réessayez.</div>
-          <div class="mt-2 muted">Astuce: mots de passe générés : <code>firstname123</code> (ex: <strong>amine123</strong>).</div>
+          <div class="mt-2 muted">Astuce: mots de passe générés : <code>Mot de pass</code> (ex: <strong>name123</strong>).</div>
         </div>
         <div class="modal-footer border-0">
-          <button class="btn btn-secondary" onclick="showDemoCredentials()">Voir comptes</button>
+          <!-- <button class="btn btn-secondary" onclick="showDemoCredentials()">Voir comptes</button> -->
           <button class="btn btn-primary" onclick="performLogin()">Se connecter</button>
         </div>
       </div>
