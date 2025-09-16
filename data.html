@@ -180,11 +180,11 @@
   // ===== USERS / PASSWORDS config =====
   // Provided mapping (matricule -> name), + passwords generated (firstname + 123)
   const USERS = {
-    "024099": "Amine Belkhadim",
-    "03924":  "Mehdi Ezzahri",
-    "012712": "Youssef Fahsi",
-    "045323": "Achraf Hammou",
-    "001008": "Ilyass Elidrissi"
+    "4099": "Amine Belkhadim",
+    "924":  "Mehdi Ezzahri",
+    "2712": "Youssef Fahsi",
+    "5323": "Achraf Hammou",
+    "1008": "Ilyass Elidrissi"
   };
 
   // Build lookup maps: id -> {name, password}, nameLower -> id
@@ -200,6 +200,27 @@
   // Add an admin account
   const ADMIN_ID = "000000";
   accountsById[ADMIN_ID] = { id: ADMIN_ID, name: "Administrator", password: "admin123", role: "admin" };
+
+
+//   // Build lookup maps: id -> {name, password}, nameLower -> id
+// const accountsById = {};
+// const nameToId = {};
+
+// // Explicitly assign passwords for each user
+// accountsById["4099"] = { id: "4099", name: "Amine Belkhadim", password: "amine2025", role: "user" };
+// accountsById["924"]  = { id: "924",  name: "Mehdi Ezzahri",  password: "mehdiStrong!", role: "user" };
+// accountsById["2712"] = { id: "2712", name: "Youssef Fahsi",  password: "youssef456", role: "user" };
+// accountsById["5323"] = { id: "5323", name: "Achraf Hammou",  password: "achraf789", role: "user" };
+// accountsById["1008"] = { id: "1008", name: "Ilyass Elidrissi", password: "ilyassSecure", role: "user" };
+
+// // Keep the admin account
+// accountsById["000000"] = { id: "000000", name: "Administrator", password: "admin123", role: "admin" };
+
+// // Build the nameToId lookup
+// for (const acc of Object.values(accountsById)) {
+//   nameToId[acc.name.toLowerCase()] = acc.id;
+// }
+
 
   // Convenience: allow lookup by id or by name. Also support searching by partial name.
   function findAccountByKey(key) {
