@@ -765,137 +765,157 @@
     doc.save(filename);
   }
 
+  
   async function generateMissionOrder() {
-    if (filteredData.length === 0) {
-      alert("⚠️ Aucun enregistrement trouvé pour générer l'Ordre de Mission.");
-      return;
-    }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF("portrait");
-    let pageWidth = doc.internal.pageSize.getWidth();
-    let pageHeight = doc.internal.pageSize.getHeight();
-    let maxLinesPerPage = 8;
-    let missionChunks = chunkArray(filteredData, maxLinesPerPage);
+  // Keep only on-site interventions
+  let filteredMissions = filteredData.filter(
+    row => row["Nature"] && row["Nature"].toLowerCase() === "on-site"
+  );
 
-    for (let pageIndex = 0; pageIndex < missionChunks.length; pageIndex++) {
-      if (pageIndex > 0) doc.addPage();
-      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
-      const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Burger_King_logo_%281999%E2%80%932020%29.svg/1200px-Burger_King_logo_%281999%E2%80%932020%29.svg.png";
-      const logoImg = await loadImage(logoUrl);
-      doc.addImage(logoImg, "PNG", 12, 12, 20, 20);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(14);
-      doc.text("ORDRE DE MISSION", pageWidth / 2, 22, { align: "center" });
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.text("GENERAL FIRST FOOD SERVICES", pageWidth - 70, 15);
-      doc.text("RH-V02-2016", pageWidth - 70, 20);
-      let today = new Date().toLocaleDateString("fr-FR");
-      doc.text(`Date : ${today}`, pageWidth - 70, 25);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.text("INFORMATIONS SUR L'EMPLOYE", 14, 40);
-      doc.rect(12, 32, pageWidth - 24, 35);
-      let first = filteredData[0] || {};
-      let techName = (first["Tech Name"] || "").split(" ");
-      doc.setFont("helvetica", "normal");
-      doc.text(`Matricule : ${first["Tech ID"] || ""}`, 14, 48);
-      doc.text(`NOM : ${techName[0] || ""}`, 14, 55);
-      doc.text(`PRENOM : ${techName.slice(1).join(" ") || ""}`, 80, 55);
-      doc.text("DEPARTEMENT : IT", 14, 62);
-      doc.text("FONCTION : IT", 80, 62);
-
-      doc.setFont("helvetica", "bold");
-      doc.text("Objet de mission :", 14, 78);
-      let startY = 85;
-      let currentMissions = missionChunks[pageIndex];
-      doc.setFont("helvetica", "normal");
-
-      currentMissions.forEach((row) => {
-        let start = formatDateOnly(row["Start Date"]);
-        let end = formatDateOnly(row["End Date"]);
-        let motifText = row["Motif"] || "Installation – Réparation";
-        let description = row["Description"] ? ` (${row["Description"]})` : "";
-        let textFull = `${row["Restaurant"] || ""} - ${motifText}${description}`;
-
-        doc.text(`Date Départ : ${start}`, 14, startY);
-        doc.text(`Date Retour : ${end}`, 70, startY);
-
-        let wrappedMotif = doc.splitTextToSize(textFull, 60);
-        doc.text(wrappedMotif, 130, startY);
-
-        startY += Math.max(10, wrappedMotif.length * 5);
-      });
-
-      while (currentMissions.length < maxLinesPerPage) {
-        doc.text("Date Départ : ___________", 14, startY);
-        doc.text("Date Retour : ___________", 70, startY);
-        doc.text("__________________________", 130, startY);
-        startY += 10;
-        currentMissions.push({});
-      }
-
-      startY += 5;
-      doc.setFont("helvetica", "bold");
-      doc.text("Frais Déplacement :", 14, startY);
-      doc.rect(12, startY - 8, pageWidth - 24, 15);
-      doc.setFont("helvetica", "normal");
-      doc.rect(65, startY - 4, 4, 4);
-      doc.text("Oui", 72, startY);
-      doc.rect(90, startY - 4, 4, 4);
-      doc.text("Non", 97, startY);
-      doc.text("Montant d'avance : ____________", 140, startY);
-
-      startY += 20;
-      doc.setFont("helvetica", "bold");
-      doc.text("Moyen de transport utilisé :", 14, startY);
-      doc.rect(12, startY - 8, pageWidth - 24, 20);
-      doc.setFont("helvetica", "normal");
-      doc.rect(80, startY - 4, 4, 4);
-      doc.text("Véhicule Personnel", 87, startY);
-      doc.rect(140, startY - 4, 4, 4);
-      doc.text("Véhicule Professionnel", 147, startY);
-      startY += 8;
-      doc.rect(80, startY - 4, 4, 4);
-      doc.text("Autre :", 87, startY);
-
-      let sigY = pageHeight - 60;
-      doc.rect(12, sigY - 10, pageWidth - 24, 40);
-      doc.setFont("helvetica", "bold");
-      doc.text("INTERESSE(E)", 30, sigY);
-      doc.text("DEPARTEMENT MANAGER", pageWidth / 2 - 20, sigY);
-      doc.text("GENERAL MANAGER", pageWidth - 70, sigY);
-
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.text("*Avant la mission, validation obligatoire par le supérieur hiérarchique et le DG.", 14, pageHeight - 15);
-    }
-
-    let filename = `ordre_mission_${filteredData[0] && filteredData[0]["Tech ID"] ? filteredData[0]["Tech ID"] : "tech"}.pdf`;
-    doc.save(filename);
-
-    function loadImage(url) {
-      return new Promise((resolve) => {
-        let img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.onload = () => {
-          let canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
-          let ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL("image/png"));
-        };
-        img.src = url;
-      });
-    }
-
-    function chunkArray(arr, size) {
-      let result = [];
-      for (let i = 0; i < arr.length; i += size) result.push(arr.slice(i, i + size));
-      return result;
-    }
+  if (filteredMissions.length === 0) {
+    alert("⚠️ Aucun enregistrement trouvé (hors Remote) pour générer l'Ordre de Mission.");
+    return;
   }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("portrait");
+  let pageWidth = doc.internal.pageSize.getWidth();
+  let pageHeight = doc.internal.pageSize.getHeight();
+  let maxLinesPerPage = 8;
+  let missionChunks = chunkArray(filteredMissions, maxLinesPerPage);
+
+  for (let pageIndex = 0; pageIndex < missionChunks.length; pageIndex++) {
+    if (pageIndex > 0) doc.addPage();
+    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+    // Logo
+    const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Burger_King_logo_%281999%E2%80%932020%29.svg/1200px-Burger_King_logo_%281999%E2%80%932020%29.svg.png";
+    const logoImg = await loadImage(logoUrl);
+    doc.addImage(logoImg, "PNG", 12, 12, 20, 20);
+
+    // Header
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("ORDRE DE MISSION", pageWidth / 2, 22, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text("GENERAL FIRST FOOD SERVICES", pageWidth - 70, 15);
+    doc.text("RH-V02-2016", pageWidth - 70, 20);
+    let today = new Date().toLocaleDateString("fr-FR");
+    doc.text(`Date : ${today}`, pageWidth - 70, 25);
+
+    // Employee Info
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("INFORMATIONS SUR L'EMPLOYE", 14, 40);
+    doc.rect(12, 32, pageWidth - 24, 35);
+
+    let first = filteredMissions[0] || {};
+    let techName = (first["Tech Name"] || "").split(" ");
+    doc.setFont("helvetica", "normal");
+    doc.text(`Matricule : ${first["Tech ID"] || ""}`, 14, 48);
+    doc.text(`NOM : ${techName[0] || ""}`, 14, 55);
+    doc.text(`PRENOM : ${techName.slice(1).join(" ") || ""}`, 80, 55);
+    doc.text("DEPARTEMENT : IT", 14, 62);
+    doc.text("FONCTION : IT", 80, 62);
+
+    // Mission Details
+    doc.setFont("helvetica", "bold");
+    doc.text("Objet de mission :", 14, 78);
+    let startY = 85;
+    let currentMissions = missionChunks[pageIndex];
+    doc.setFont("helvetica", "normal");
+
+    currentMissions.forEach((row) => {
+      let start = formatDateOnly(row["Start Date"]);
+      let end = formatDateOnly(row["End Date"]);
+      let motifText = row["Motif"] || "Installation – Réparation";
+      let description = row["Description"] ? ` (${row["Description"]})` : "";
+      let textFull = `${row["Restaurant"] || ""} - ${motifText}${description}`;
+
+      doc.text(`Date Départ : ${start}`, 14, startY);
+      doc.text(`Date Retour : ${end}`, 70, startY);
+
+      let wrappedMotif = doc.splitTextToSize(textFull, 60);
+      doc.text(wrappedMotif, 130, startY);
+
+      startY += Math.max(10, wrappedMotif.length * 5);
+    });
+
+    // Fill empty lines
+    while (currentMissions.length < maxLinesPerPage) {
+      doc.text("Date Départ : ___________", 14, startY);
+      doc.text("Date Retour : ___________", 70, startY);
+      doc.text("__________________________", 130, startY);
+      startY += 10;
+      currentMissions.push({});
+    }
+
+    // Travel Expenses
+    startY += 5;
+    doc.setFont("helvetica", "bold");
+    doc.text("Frais Déplacement :", 14, startY);
+    doc.rect(12, startY - 8, pageWidth - 24, 15);
+    doc.setFont("helvetica", "normal");
+    doc.rect(65, startY - 4, 4, 4);
+    doc.text("Oui", 72, startY);
+    doc.rect(90, startY - 4, 4, 4);
+    doc.text("Non", 97, startY);
+    doc.text("Montant d'avance : ____________", 140, startY);
+
+    // Transport
+    startY += 20;
+    doc.setFont("helvetica", "bold");
+    doc.text("Moyen de transport utilisé :", 14, startY);
+    doc.rect(12, startY - 8, pageWidth - 24, 20);
+    doc.setFont("helvetica", "normal");
+    doc.rect(80, startY - 4, 4, 4);
+    doc.text("Véhicule Personnel", 87, startY);
+    doc.rect(140, startY - 4, 4, 4);
+    doc.text("Véhicule Professionnel", 147, startY);
+    startY += 8;
+    doc.rect(80, startY - 4, 4, 4);
+    doc.text("Autre :", 87, startY);
+
+    // Signatures
+    let sigY = pageHeight - 60;
+    doc.rect(12, sigY - 10, pageWidth - 24, 40);
+    doc.setFont("helvetica", "bold");
+    doc.text("INTERESSE(E)", 30, sigY);
+    doc.text("DEPARTEMENT MANAGER", pageWidth / 2 - 20, sigY);
+    doc.text("GENERAL MANAGER", pageWidth - 70, sigY);
+
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("*Avant la mission, validation obligatoire par le supérieur hiérarchique et le DG.", 14, pageHeight - 15);
+  }
+
+  let filename = `ordre_mission_${filteredMissions[0] && filteredMissions[0]["Tech ID"] ? filteredMissions[0]["Tech ID"] : "tech"}.pdf`;
+  doc.save(filename);
+
+  // Helpers
+  function loadImage(url) {
+    return new Promise((resolve) => {
+      let img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => {
+        let canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        let ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.src = url;
+    });
+  }
+
+  function chunkArray(arr, size) {
+    let result = [];
+    for (let i = 0; i < arr.length; i += size) result.push(arr.slice(i, i + size));
+    return result;
+  }
+}
 
   // helper loadImage used in many places
   function loadImage(url) {

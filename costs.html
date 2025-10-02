@@ -202,59 +202,66 @@
   // Add an initial row
   createRow();
 
-  document.getElementById("expensesForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+document.getElementById("expensesForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    const rows = Array.from(tbody.querySelectorAll("tr"));
-    const expenses = rows.map(tr => {
-      const category = tr.querySelector("select").value;
-      const description = tr.querySelector("input[name='description']").value.trim();
-      const cost = parseFloat(tr.querySelector("input[name='cost']").value);
+  const submitBtn = e.target.querySelector(".btn.submit");
+  submitBtn.disabled = true;            // 🔹 disable immediately
+  submitBtn.textContent = "Submitting..."; // optional UI feedback
 
-      // ✅ If it's kms → store the kms (not converted)
-      if (category === "Kms") {
-        return { category, description, kms: isNaN(cost) ? 0 : cost };
-      }
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+  const expenses = rows.map(tr => {
+    const category = tr.querySelector("select").value;
+    const description = tr.querySelector("input[name='description']").value.trim();
+    const cost = parseFloat(tr.querySelector("input[name='cost']").value);
 
-      return { category, description, cost };
-    }).filter(e => e.description && ((e.cost !== undefined && !isNaN(e.cost)) || (e.kms !== undefined && !isNaN(e.kms))));
-
-    if (expenses.length === 0) {
-      return Swal.fire({ icon: "warning", title: "No expenses added" });
+    if (category === "Kms") {
+      return { category, description, kms: isNaN(cost) ? 0 : cost };
     }
+    return { category, description, cost };
+  }).filter(e => e.description && ((e.cost !== undefined && !isNaN(e.cost)) || (e.kms !== undefined && !isNaN(e.kms))));
 
-    // Collect query params (interventionId)
-    const params = new URLSearchParams(window.location.search);
-    const interventionId = params.get("id") || "unknown";
+  if (expenses.length === 0) {
+    submitBtn.disabled = false;         // re-enable if nothing submitted
+    submitBtn.textContent = "Submit Expenses";
+    return Swal.fire({ icon: "warning", title: "No expenses added" });
+  }
 
-    const payload = {
-      type: "expenses",
-      interventionId,
-      expenses,
-      submittedAt: new Date().toISOString()
-    };
+  const params = new URLSearchParams(window.location.search);
+  const interventionId = params.get("id") || "unknown";
 
-    try {
-      const res = await fetch("https://script.google.com/macros/s/AKfycbxXBug68gHqa3Q_Fyroz5hnzy1P8JdkRP9kTW9NeZ-hZqSUtmIH2Yp7PicABEmm7nF5/exec", {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+  const payload = {
+    type: "expenses",
+    interventionId,
+    expenses,
+    submittedAt: new Date().toISOString()
+  };
 
-      Swal.fire({
-        icon: "success",
-        title: "Expenses submitted",
-        timer: 2000,
-        showConfirmButton: false
-      }).then(() => {
-        window.location.href = "index.html";
-      });
+  try {
+    const res = await fetch("https://script.google.com/macros/s/AKfycbypgdFMzqYN9z3GOXCJ4BLGG_SSZWiLwp6yJyZ1P5AyazS9zotPGRGZO1l7XVclF63x/exec", {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
-    } catch (err) {
-      Swal.fire({ icon: "error", title: "Submission failed" });
-    }
-  });
+    Swal.fire({
+      icon: "success",
+      title: "Expenses submitted",
+      timer: 2000,
+      showConfirmButton: false
+    }).then(() => {
+      window.location.href = "index.html";
+    });
+
+  } catch (err) {
+    // 🔹 re-enable if failed
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Submit Expenses";
+    Swal.fire({ icon: "error", title: "Submission failed" });
+  }
+});
+
 </script>
 
 </body>
