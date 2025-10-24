@@ -523,199 +523,204 @@
   // ===== PDF / Printing / Mission / Expense functions =====
   // I preserved your existing implementations but made them respect filteredData and currentUser visibility.
   async function generateExpenseReport() {
-    if (!filteredData || filteredData.length === 0) {
-      alert("⚠️ Aucun enregistrement trouvé pour générer la Note de Frais.");
-      return;
+  if (filteredData.length === 0) {
+    alert("⚠️ Aucun enregistrement trouvé pour générer la Note de Frais.");
+    return;
+  }
+
+  const sheetId = "1W_cpnAt98OHiOTHp9KmCwdWGbGYrGA6n15Eb-Vz0wD4";
+  let expenses = await fetch(`https://opensheet.elk.sh/${sheetId}/Expenses`).then(r => r.json());
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("landscape");
+  let pageWidth = doc.internal.pageSize.getWidth();
+  let pageHeight = doc.internal.pageSize.getHeight();
+  let bottomMargin = 60; // espace réservé pour signatures
+
+  const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Burger_King_logo_%281999%E2%80%932020%29.svg/1200px-Burger_King_logo_%281999%E2%80%932020%29.svg.png";
+  const logoImg = await loadImage(logoUrl);
+
+  function drawHeader(first) {
+    doc.addImage(logoImg, "PNG", 10, 10, 25, 25);
+
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.text("Travel Expense", 40, 16);
+    doc.setFont("helvetica", "bolditalic");
+    doc.setFontSize(11);
+    doc.text("Traveling Expenses Form", 40, 24);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("GENERAL FIRST FOOD SERVICES S.A.S", pageWidth / 2, 12, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    let xInfo = pageWidth - 80;
+    doc.rect(xInfo, 15, 70, 25);
+    doc.text(`N° Matricule : ${first["Tech ID"] || ""}`, xInfo + 3, 21);
+    let techName = (first["Tech Name"] || "").split(" ");
+    doc.text(`Nom : ${techName[0] || ""}`, xInfo + 3, 28);
+    doc.text(`Prénom : ${techName.slice(1).join(" ") || ""}`, xInfo + 3, 35);
+
+    let today = new Date().toLocaleDateString("fr-FR");
+    doc.rect(xInfo, 45, 70, 10);
+    doc.text(today, xInfo + 25, 52);
+  }
+
+  let grouped = {};
+  let diversDetails = {};
+
+  expenses.forEach(exp => {
+    if (filteredData.some(f => f["Intervention ID"] === exp["Intervention ID"])) {
+      let matchedIntervention = filteredData.find(f => f["Intervention ID"] === exp["Intervention ID"]);
+      if (!matchedIntervention) return;
+
+      let jour = new Date(matchedIntervention["Start Date"]).getDate();
+      let mois = new Date(matchedIntervention["Start Date"]).getMonth() + 1;
+      let libelle = matchedIntervention["Restaurant"] || "";
+
+      let key = `${jour}-${mois}-${libelle}`;
+      if (!grouped[key]) {
+        grouped[key] = { jour, mois, libelle, train: 0, autoroute: 0, taxi: 0, kms: 0, montant: 0, hotel: 0, repas: 0, divers: 0 };
+        diversDetails[key] = [];
+      }
+
+      let amount = parseFloat(exp["Montant"] || 0);
+      let nature = (exp["Nature"] || "").trim().toLowerCase();
+
+      if (nature.includes("taxi")) grouped[key].taxi += amount;
+      else if (nature.includes("train")) grouped[key].train += amount;
+      else if (nature.includes("meal") || nature.includes("repas")) grouped[key].repas += amount;
+      else if (nature.includes("hotel") || nature.includes("hostel")) grouped[key].hotel += amount;
+      else if (nature.includes("autoroute")) grouped[key].autoroute += amount;
+      else if (nature.includes("kms")) {
+        let kmsValue = parseFloat(exp["Montant"] || 0);
+        grouped[key].kms += kmsValue;
+        grouped[key].montant += kmsValue * 3;
+      } else {
+        grouped[key].divers += amount;
+        diversDetails[key].push(`${exp["Description"] || "Autre"} | ${amount} dhs`);
+      }
     }
+  });
 
-    const sheetId = "1xUiaofSCIt6UgsIfqrLXN7FkcMaU-tLoKZmooBzEGFg";
-    let expenses = [];
-    try {
-      expenses = await fetch(`https://opensheet.elk.sh/${sheetId}/Expenses`).then(r => r.json());
-    } catch(e) {
-      console.warn("Erreur chargement expenses:", e);
-    }
+  let rows = Object.values(grouped).map(g => {
+    let total = g.train + g.autoroute + g.taxi + g.montant + g.hotel + g.repas + g.divers;
+    return [ g.jour, g.mois, g.libelle, g.train.toFixed(2), g.autoroute.toFixed(2), g.taxi.toFixed(2), g.kms.toFixed(0), g.montant.toFixed(2), g.hotel.toFixed(2), g.repas.toFixed(2), g.divers.toFixed(2), total.toFixed(2) ];
+  });
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF("landscape");
-    let pageWidth = doc.internal.pageSize.getWidth();
-    let pageHeight = doc.internal.pageSize.getHeight();
-    let bottomMargin = 60;
+  let totalGeneral = rows.reduce((acc, r) => acc + parseFloat(r[11]), 0);
 
-    const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Burger_King_logo_%281999%E2%80%932020%29.svg/1200px-Burger_King_logo_%281999%E2%80%932020%29.svg.png";
-    const logoImg = await loadImage(logoUrl);
+  function drawTable(startY) {
+    let colWidths = [15, 15, 45, 20, 25, 20, 15, 25, 25, 25, 25, 25];
+    let headers = ["JOUR","MOIS","Libellé de la dépense","Train","Autoroute","Taxi","Kms","Montant","HOTEL","REPAS","DIVERS TTC","TOTAL"];
 
-    function drawHeader(first) {
-      doc.addImage(logoImg, "PNG", 10, 10, 25, 25);
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.text("Travel Expense", 40, 16);
-      doc.setFont("helvetica", "bolditalic");
-      doc.setFontSize(11);
-      doc.text("Traveling Expenses Form", 40, 24);
+    let y = startY;
+    let rowHeight = 8;
+
+    function drawHeaderRow() {
+      let x = 10;
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      doc.text("GENERAL FIRST FOOD SERVICES S.A.S", pageWidth / 2, 12, { align: "center" });
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      let xInfo = pageWidth - 80;
-      doc.rect(xInfo, 15, 70, 25);
-      doc.text(`N° Matricule : ${first["Tech ID"] || ""}`, xInfo + 3, 21);
-      let techName = (first["Tech Name"] || "").split(" ");
-      doc.text(`Nom : ${techName[0] || ""}`, xInfo + 3, 28);
-      doc.text(`Prénom : ${techName.slice(1).join(" ") || ""}`, xInfo + 3, 35);
-      let today = new Date().toLocaleDateString("fr-FR");
-      doc.rect(xInfo, 45, 70, 10);
-      doc.text(today, xInfo + 25, 52);
+      doc.setFontSize(9);
+      headers.forEach((h, i) => {
+        doc.rect(x, y, colWidths[i], 10);
+        doc.text(h, x + colWidths[i]/2, y + 7, { align: "center" });
+        x += colWidths[i];
+      });
+      y += 10;
     }
 
-    let grouped = {};
-    let diversDetails = {};
+    drawHeaderRow();
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
 
-    expenses.forEach(exp => {
-      if (filteredData.some(f => f["Intervention ID"] === exp["Intervention ID"])) {
-        let matchedIntervention = filteredData.find(f => f["Intervention ID"] === exp["Intervention ID"]);
-        if (!matchedIntervention) return;
-
-        let jour = new Date(matchedIntervention["Start Date"]).getDate();
-        let mois = new Date(matchedIntervention["Start Date"]).getMonth() + 1;
-        let libelle = matchedIntervention["Restaurant"] || "";
-        let key = `${jour}-${mois}-${libelle}`;
-        if (!grouped[key]) {
-          grouped[key] = { jour, mois, libelle, train: 0, autoroute: 0, taxi: 0, kms: 0, montant: 0, hotel: 0, repas: 0, divers: 0 };
-          diversDetails[key] = [];
-        }
-
-        let amount = parseFloat(exp["Montant"] || 0);
-        let nature = (exp["Nature"] || "").trim().toLowerCase();
-
-        if (nature.includes("taxi")) grouped[key].taxi += amount;
-        else if (nature.includes("train")) grouped[key].train += amount;
-        else if (nature.includes("meal") || nature.includes("repas")) grouped[key].repas += amount;
-        else if (nature.includes("hotel") || nature.includes("hostel")) grouped[key].hotel += amount;
-        else if (nature.includes("autoroute")) grouped[key].autoroute += amount;
-        else if (nature.includes("kms")) {
-          let kmsValue = parseFloat(exp["Montant"] || 0);
-          grouped[key].kms += kmsValue;
-          grouped[key].montant += kmsValue * 3;
-        } else {
-          grouped[key].divers += amount;
-          diversDetails[key].push(`${exp["Description"] || "Autre"} | ${amount} dhs`);
-        }
+    rows.forEach((r, idx) => {
+      if (y + rowHeight + bottomMargin > pageHeight) {
+        doc.addPage();
+        y = 20;
+        drawHeaderRow();
       }
-    });
-
-    let rows = Object.values(grouped).map(g => {
-      let total = g.train + g.autoroute + g.taxi + g.montant + g.hotel + g.repas + g.divers;
-      return [ g.jour, g.mois, g.libelle, g.train.toFixed(2), g.autoroute.toFixed(2), g.taxi.toFixed(2), g.kms.toFixed(0), g.montant.toFixed(2), g.hotel.toFixed(2), g.repas.toFixed(2), g.divers.toFixed(2), total.toFixed(2) ];
-    });
-
-    let totalGeneral = rows.reduce((acc, r) => acc + parseFloat(r[11] || 0), 0);
-
-    function drawTable(startY) {
-      let colWidths = [15, 15, 45, 20, 25, 20, 15, 25, 25, 25, 25, 25];
-      let headers = ["JOUR","MOIS","Libellé de la dépense","Train","Autoroute","Taxi","Kms","Montant","HOTEL","REPAS","DIVERS TTC","TOTAL"];
-      let y = startY;
-      let rowHeight = 8;
-
-      function drawHeaderRow() {
-        let x = 10;
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(9);
-        headers.forEach((h, i) => {
-          doc.rect(x, y, colWidths[i], 10);
-          doc.text(h, x + colWidths[i]/2, y + 7, { align: "center" });
-          x += colWidths[i];
-        });
-        y += 10;
-      }
-
-      drawHeaderRow();
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-
-      rows.forEach((r, idx) => {
-        if (y + rowHeight + bottomMargin > pageHeight) {
-          doc.addPage();
-          y = 20;
-          drawHeaderRow();
-        }
-        let x = 10;
-        r.forEach((cell, i) => {
-          doc.rect(x, y, colWidths[i], rowHeight);
-          doc.text(String(cell), x + colWidths[i]/2, y + 6, { align: "center" });
-          x += colWidths[i];
-        });
-        y += rowHeight;
+      let x = 10;
+      r.forEach((cell, i) => {
+        doc.rect(x, y, colWidths[i], rowHeight);
+        doc.text(String(cell), x + colWidths[i]/2, y + 6, { align: "center" });
+        x += colWidths[i];
       });
+      y += rowHeight;
 
-      while (y + rowHeight + bottomMargin < pageHeight - 10) {
-        let x = 10;
-        headers.forEach((_, i) => {
-          doc.rect(x, y, colWidths[i], rowHeight);
-          x += colWidths[i];
-        });
-        y += rowHeight;
-      }
+      let key = `${r[0]}-${r[1]}-${r[2]}`;
+     
+    });
 
+    while (y + rowHeight + bottomMargin < pageHeight - 10) {
       let x = 10;
       headers.forEach((_, i) => {
         doc.rect(x, y, colWidths[i], rowHeight);
-        if (i === headers.length - 2) doc.text("TOTAL", x + colWidths[i]/2, y + 6, { align: "center" });
-        if (i === headers.length - 1) doc.text(totalGeneral.toFixed(2), x + colWidths[i]/2, y + 6, { align: "center" });
         x += colWidths[i];
       });
-      return y + rowHeight;
+      y += rowHeight;
     }
 
-    function drawBottomSection() {
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      let y = pageHeight - 35;
-
-      doc.rect(10, y, 90, 12);
-      doc.text("N° Pièce :", 12, y + 7);
-
-      doc.rect(10, y + 12, 90, 12);
-      doc.text("Visa Comptabilité :", 12, y + 19);
-
-      let labels = ["Signature Émetteur :","Visa Responsable :","Visa Finance Manager :","Visa General Manager :"];
-      let xStart = 110;
-      let availableWidth = pageWidth - xStart - 10;
-      let boxWidth = availableWidth / labels.length;
-      let boxHeight = 24;
-
-      labels.forEach((l, idx) => {
-        let x = xStart + idx * boxWidth;
-        doc.rect(x, y, boxWidth, boxHeight);
-        doc.text(l, x + 2, y + 7);
-        doc.text("Date :", x + 2, y + 15);
-      });
-    }
-
-    let first = filteredData[0];
-    drawHeader(first);
-    drawTable(65);
-    drawBottomSection();
-
-    let filename = `note_frais_${filteredData[0]["Tech ID"] || "tech"}.pdf`;
-    doc.save(filename);
-
-    function loadImage(url) {
-      return new Promise((resolve) => {
-        let img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.onload = () => {
-          let canvas = document.createElement("canvas");
-          canvas.width = img.width; canvas.height = img.height;
-          let ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL("image/png"));
-        };
-        img.src = url;
-      });
-    }
+    let x = 10;
+    headers.forEach((_, i) => {
+      doc.rect(x, y, colWidths[i], rowHeight);
+      if (i === headers.length - 2) doc.text("TOTAL", x + colWidths[i]/2, y + 6, { align: "center" });
+      if (i === headers.length - 1) doc.text(totalGeneral.toFixed(2), x + colWidths[i]/2, y + 6, { align: "center" });
+      x += colWidths[i];
+    });
+    return y + rowHeight;
   }
+
+  function drawBottomSection() {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let y = pageHeight - 35;
+
+    doc.rect(10, y, 90, 12);
+    doc.text("N° Pièce :", 12, y + 7);
+
+    doc.rect(10, y + 12, 90, 12);
+    doc.text("Visa Comptabilité :", 12, y + 19);
+
+    let labels = ["Signature Émetteur :","Visa Responsable :","Visa Finance Manager :","Visa General Manager :"];
+
+    let xStart = 110;
+    let availableWidth = pageWidth - xStart - 10;
+    let boxWidth = availableWidth / labels.length;
+    let boxHeight = 24;
+
+    labels.forEach((l, idx) => {
+      let x = xStart + idx * boxWidth;
+      doc.rect(x, y, boxWidth, boxHeight);
+      doc.text(l, x + 2, y + 7);
+      doc.text("Date :", x + 2, y + 15);
+    });
+  }
+
+  let first = filteredData[0];
+  drawHeader(first);
+  drawTable(65);
+  drawBottomSection();
+
+  let filename = `note_frais_${filteredData[0]["Tech ID"] || "tech"}.pdf`;
+  doc.save(filename);
+
+  function loadImage(url) {
+    return new Promise((resolve) => {
+      let img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => {
+        let canvas = document.createElement("canvas");
+        canvas.width = img.width; canvas.height = img.height;
+        let ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.src = url;
+    });
+  }
+}
 
   // printInterventions, generateMissionOrder: we reuse your functions but ensure they use filteredData
   function printInterventions() {
