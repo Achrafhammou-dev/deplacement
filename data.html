@@ -605,10 +605,58 @@
     }
   });
 
-  let rows = Object.values(grouped).map(g => {
-    let total = g.train + g.autoroute + g.taxi + g.montant + g.hotel + g.repas + g.divers;
-    return [ g.jour, g.mois, g.libelle, g.train.toFixed(2), g.autoroute.toFixed(2), g.taxi.toFixed(2), g.kms.toFixed(0), g.montant.toFixed(2), g.hotel.toFixed(2), g.repas.toFixed(2), g.divers.toFixed(2), total.toFixed(2) ];
-  });
+// Regrouper par JOUR et MOIS (et fusionner les restaurants)
+let mergedByDay = {};
+
+Object.values(grouped).forEach(g => {
+  let key = `${g.jour}-${g.mois}`;
+  if (!mergedByDay[key]) {
+    mergedByDay[key] = {
+      jour: g.jour,
+      mois: g.mois,
+      libelles: [g.libelle],
+      train: g.train,
+      autoroute: g.autoroute,
+      taxi: g.taxi,
+      kms: g.kms,
+      montant: g.montant,
+      hotel: g.hotel,
+      repas: g.repas,
+      divers: g.divers
+    };
+  } else {
+    mergedByDay[key].libelles.push(g.libelle);
+    mergedByDay[key].train += g.train;
+    mergedByDay[key].autoroute += g.autoroute;
+    mergedByDay[key].taxi += g.taxi;
+    mergedByDay[key].kms += g.kms;
+    mergedByDay[key].montant += g.montant;
+    mergedByDay[key].hotel += g.hotel;
+    mergedByDay[key].repas += g.repas;
+    mergedByDay[key].divers += g.divers;
+  }
+});
+
+// Construire le tableau final
+let rows = Object.values(mergedByDay).map(g => {
+  let libelleFusionne = g.libelles.join(" & ");
+  let total = g.train + g.autoroute + g.taxi + g.montant + g.hotel + g.repas + g.divers;
+  return [
+    g.jour,
+    g.mois,
+    libelleFusionne,
+    g.train.toFixed(2),
+    g.autoroute.toFixed(2),
+    g.taxi.toFixed(2),
+    g.kms.toFixed(0),
+    g.montant.toFixed(2),
+    g.hotel.toFixed(2),
+    g.repas.toFixed(2),
+    g.divers.toFixed(2),
+    total.toFixed(2)
+  ];
+});
+
 
   let totalGeneral = rows.reduce((acc, r) => acc + parseFloat(r[11]), 0);
 
@@ -635,23 +683,36 @@
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
 
-    rows.forEach((r, idx) => {
-      if (y + rowHeight + bottomMargin > pageHeight) {
-        doc.addPage();
-        y = 20;
-        drawHeaderRow();
-      }
-      let x = 10;
-      r.forEach((cell, i) => {
-        doc.rect(x, y, colWidths[i], rowHeight);
-        doc.text(String(cell), x + colWidths[i]/2, y + 6, { align: "center" });
-        x += colWidths[i];
-      });
-      y += rowHeight;
+   rows.forEach((r, idx) => {
+  // Calcul de la hauteur de ligne selon le texte du libellé
+  let libelleText = doc.splitTextToSize(String(r[2]), colWidths[2] - 2);
+  let linesCount = libelleText.length;
+  let dynamicHeight = Math.max(8, linesCount * 5); // minimum 8, sinon selon le texte
 
-      let key = `${r[0]}-${r[1]}-${r[2]}`;
-     
-    });
+  if (y + dynamicHeight + bottomMargin > pageHeight) {
+    doc.addPage();
+    y = 20;
+    drawHeaderRow();
+  }
+
+  let x = 10;
+  r.forEach((cell, i) => {
+    doc.rect(x, y, colWidths[i], dynamicHeight);
+
+    if (i === 2) {
+      // Libellé → texte à gauche avec gestion multi-lignes
+      doc.text(libelleText, x + 1, y + 5);
+    } else {
+      // Autres colonnes → centrées verticalement
+      let textY = y + dynamicHeight / 2 + 3;
+      doc.text(String(cell), x + colWidths[i] / 2, textY, { align: "center" });
+    }
+
+    x += colWidths[i];
+  });
+
+  y += dynamicHeight;
+});
 
     while (y + rowHeight + bottomMargin < pageHeight - 10) {
       let x = 10;
