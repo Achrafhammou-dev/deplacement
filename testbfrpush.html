@@ -59,71 +59,6 @@ select option:hover {
 }
 
 
-/* --- NEW MULTI-SELECT GRID STYLES --- */
-
-/* The container that holds the options */
-.multiselect-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Auto-fit columns */
-  gap: 8px;
-  max-height: 280px; /* Scrollable height */
-  overflow-y: auto;
-  padding: 12px;
-  background: var(--card-2);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px;
-}
-
-/* Scrollbar styling for the grid */
-.multiselect-grid::-webkit-scrollbar { width: 6px; }
-.multiselect-grid::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
-.multiselect-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
-
-/* The individual option cards */
-.select-card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 10px 8px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--muted);
-  transition: all 0.2s ease;
-  user-select: none; /* Prevent text highlighting */
-}
-
-/* Hover effect */
-.select-card:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.2);
-  transform: translateY(-1px);
-}
-
-/* HIDE the actual checkbox input */
-.select-card input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
-}
-
-/* --- SELECTED STATE --- */
-/* When the checkbox inside is checked, style the parent label */
-.select-card:has(input:checked) {
-  background: linear-gradient(135deg, var(--primary), #9aaeff);
-  border-color: transparent;
-  color: white;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(108,140,255,0.3);
-  transform: translateY(-1px);
-}
-
   </style>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -324,632 +259,341 @@ select option:hover {
 
         <div class="section-title">Context</div>
 
-<div class="field third">
-  <label class="block mb-2 text-sm font-medium text-gray-700">Select Restaurant(s)</label>
-  
-  <div class="multiselect-grid" id="restaurantGrid">
-    <label class="select-card">
-      <input type="checkbox" name="restaurant_opt" value="Head Office">
-      <span>Head Office</span>
-    </label>
-    <label class="select-card">
-      <input type="checkbox" name="restaurant_opt" value="All Restaurants">
-      <span>All Restaurants</span>
-    </label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Morocco Mall BK"><span>Morocco Mall BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Kitea Geant BK"><span>Kitea Geant BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Anfa Place BK"><span>Anfa Place BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Borj Fez BK"><span>Borj Fez BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Agdal Rabat BK"><span>Agdal Rabat BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Maarif BK"><span>Maarif BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Carre Eden BK"><span>Carre Eden BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="AL Jazira BK"><span>AL Jazira BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Tanger City Center BK"><span>Tanger City Center BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Al Mazar BK"><span>Al Mazar BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Exit Casa BK"><span>Exit Casa BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Sidi Maarouf BK"><span>Sidi Maarouf BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Socco Alto BK"><span>Socco Alto BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Lafayette BK"><span>Lafayette BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Beni Mellal BK"><span>Beni Mellal BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="El Jadida BK"><span>El Jadida BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Arribat Center BK"><span>Arribat Center BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Menara Mall BK"><span>Menara Mall BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Abdelmoumen BK"><span>Abdelmoumen BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Harhoura BK"><span>Harhoura BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Tachfine Center BK"><span>Tachfine Center BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Marina BK"><span>Marina BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Mohammadia BK"><span>Mohammadia BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Dar Bouazza BK"><span>Dar Bouazza BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Bd Anfa BK"><span>Bd Anfa BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Mahaj Riad BK"><span>Mahaj Riad BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Tetouan BK"><span>Tetouan BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Laaraache BK"><span>Laaraache BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Ibn Battouta BK"><span>Ibn Battouta BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Targa BK"><span>Targa BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="T-Relais BK"><span>T-Relais BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Marina Sale BK"><span>Marina Sale BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Zeir BK"><span>Zeir BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="El bayda BK"><span>El bayda BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Temara BK"><span>Temara BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="2 M-ars BK"><span>2 M-ars BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Carrefour Sale BK"><span>Carrefour Sale BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Essalama BK"><span>Essalama BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Area Mall BK"><span>Area Mall BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Ola Marrakech BK"><span>Ola Marrakech BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Sale bouregreg BK"><span>Sale bouregreg BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="settat BK"><span>settat BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Sela Park Agadir BK"><span>Sela Park Agadir BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Tamesna BK"><span>Tamesna BK</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Evolved System"><span>Evolved System</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="NCR"><span>NCR</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="NSE"><span>NSE</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Retail holding"><span>Retail holding</span></label>
-    <label class="select-card"><input type="checkbox" name="restaurant_opt" value="Visuel access"><span>Visuel access</span></label>
-  </div>
-  
-  <div class="helper">Click options to select multiple.</div>
-</div>
-
-
         <div class="field third">
+<label for="restaurant" class="block mb-2 text-sm font-medium text-gray-700">Select Restaurant</label>
+<select id="restaurant" required>
+  <option value="" disabled selected>🍔 Choose your Burger King</option>
+<option> Head Office</option>
+<option> All Restaurants</option>
+<option> Morocco Mall BK </option>
+<option> Kitea Geant BK </option>
+<option> Anfa Place BK </option>
+<option> Borj Fez BK </option>
+<option> Agdal Rabat BK </option>
+<option> Maarif BK </option>
+<option> Carre Eden BK </option>
+<option> AL Jazira BK </option>
+<option> Tanger City Center BK </option>
+<option> Al Mazar BK </option>
+<option> Exit Casa BK </option>
+<option> Sidi Maarouf BK </option>
+<option> Socco Alto BK </option>
+<option> Lafayette BK </option>
+<option> Beni Mellal BK </option>
+<option> El Jadida BK </option>
+<option> Arribat Center BK </option>
+<option> Menara Mall BK </option>
+<option> Abdelmoumen BK </option>
+<option> Harhoura BK </option>
+<option> Tachfine Center BK </option>
+<option> Marina BK </option>
+<option> Mohammadia BK </option>
+<option> Dar Bouazza BK </option>
+<option> Bd Anfa BK </option>
+<option> Mahaj Riad BK </option>
+<option> Tetouan BK </option>
+<option> Laaraache BK </option>
+<option> Ibn Battouta BK </option>
+<option> Targa BK </option>
+<option> T-Relais BK </option>
+<option> Marina Sale BK </option>
+<option> Zeir BK </option>
+<option> El bayda BK </option>
+<option> Temara BK </option>
+<option> 2 M-ars BK </option>
+<option> Carrefour Sale BK </option>
+<option> Essalama  BK </option>
+<option> Area Mall  BK </option>
+<option> Ola Marrakech BK </option>
+<option> Sale bouregreg BK </option>
+<option> settat BK </option>
+<option> Sela Park Agadir BK </option>
+<option> Tamesna BK </option>
+<option> Evolved System</option>
+<option> NCR</option>
+<option> NSE</option>
+<option> Retail holding</option>
+<option> Visuel access</option>
 
+
+
+</select>
+
+        </div>
+        <div class="field third">
           <label for="motif">Motif</label>
-
           <select id="motif" name="motif" required>
-
             <option value="" disabled selected>Select a motif…</option>
-
             <option>Activations Code POS</option>
-
             <option>Activation acces Aloha/ISP</option>
-
             <option>Incident</option>
-
             <option>Maintenance</option>
-
             <option>Installation</option>
-
             <option>Upgrade</option>
-
             <option>Audit</option>
-
             <option>Other</option>
-
           </select>
-
         </div>
 
-        
-  <div class="field full">
-
+        <div class="field full">
           <label for="description">Description</label>
-
           <textarea id="description" name="description" placeholder="Describe the problem, actions taken, statuses, references…" required></textarea>
-
         </div>
-
-
 
         <div class="actions">
-
           <button type="button" class="btn" id="resetBtn">Reset</button>
-
           <button type="submit" class="btn primary" id="submitBtn">Done & Continue</button>
-
         </div>
-
                 <div class="action">
 
-
-
           <button type="button" class="btn data-btn" onclick="window.location.href='data.html'">📑 Archive</button>
-
         </div>
-
       </form>
-
     </section>
 
-
-
     <div class="footer-note">After submission, you will be redirected to the "Expenses & Bills" page for this intervention.</div>
-
   </div>
 
-
-
   <script>
-
     // ===================== CONFIG =====================
-
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBzJfDtfD2Cy-qlZuhGWAOF2as17z66jgll3nA0KPgpmmLzVhAS6TPTxuik3psh5Z8/exec';
-
-
 
     const EMPLOYEES = {
 
-
-
    "4099": "Amine Belkhadim",
-
   "924": "Mehdi Ezzahri",
-
   "2712": "Youssef Fahsi",
-
   "5323": "Achraf Hammou" ,
-
   "1008": "Ilyass El idrissi" ,
-
-
 
     };
 
-
-
     // 3) Expenses page URL to redirect to after successful submission
-
     const EXPENSES_PAGE = 'costs.html'; // provide later
 
-
-
     // ===================== UTILITIES =====================
-
     const $ = (sel) => document.querySelector(sel);
-
-
 
     function pad(n){ return String(n).padStart(2,'0'); }
 
-
-
     function toLocalDatetimeValue(date = new Date()){
-
       const y = date.getFullYear();
-
       const m = pad(date.getMonth()+1);
-
       const d = pad(date.getDate());
-
       const hh = pad(date.getHours());
-
       const mm = pad(date.getMinutes());
-
       return `${y}-${m}-${d}T${hh}:${mm}`;
-
     }
-
-
 
     function minutesBetween(a, b){
-
       const ms = b.getTime() - a.getTime();
-
       return Math.round(ms/60000);
-
     }
-
-
 
     function formatDuration(mins){
-
       if (isNaN(mins) || mins < 0) return '—';
-
       const h = Math.floor(mins/60);
-
       const m = mins % 60;
-
       const parts = [];
-
       if (h) parts.push(`${h}h`);
-
       if (m || !h) parts.push(`${m}m`);
-
       return parts.join(' ');
-
     }
-
-
 
     function generateInterventionId(){
-
       const d = new Date();
-
       return `INT-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;
-
     }
-
-
 
     function showToast(icon, title){
-
       return Swal.fire({
-
         toast: true, position: 'top', timer: 2200, showConfirmButton: false,
-
-        icon, title,
-
-        background: '#111528', color: '#eef2ff',
-
+        icon, title, 
+        background: '#111528', color: '#eef2ff', 
         didOpen: (el)=> el.style.border = '1px solid rgba(255,255,255,.15)'
-
       });
-
     }
-
-
 
     function setSubmitting(isOn){
-
       const bar = $('#topbar');
-
       const btn = $('#submitBtn');
-
       if(isOn){ bar.classList.add('active'); btn.disabled = true; btn.textContent = 'Saving…'; }
-
       else { bar.classList.remove('active'); btn.disabled = false; btn.textContent = 'Done & Continue'; }
-
     }
-
-
 
     // 3D tilt for fun
-
     (function attachTilt(){
-
       const wrap = document.getElementById('tilt');
-
       const card = document.getElementById('card');
-
       wrap.addEventListener('mousemove', (e)=>{
-
         const r = wrap.getBoundingClientRect();
-
         const cx = r.left + r.width/2; const cy = r.top + r.height/2;
-
         const dx = (e.clientX - cx) / r.width; // -0.5..0.5
-
         const dy = (e.clientY - cy) / r.height;
-
         const max = 6; // deg
-
         card.style.setProperty('--rx', `${(-dy*max).toFixed(2)}deg`);
-
         card.style.setProperty('--ry', `${(dx*max).toFixed(2)}deg`);
-
       });
-
       wrap.addEventListener('mouseleave', ()=>{
-
         card.style.removeProperty('--rx'); card.style.removeProperty('--ry');
-
       });
-
     })();
 
-
-
     // ===================== MAIN LOGIC =====================
-
     const techIdInput = $('#techId');
-
     const techNamePreview = $('#techNamePreview');
-
     const startInput = $('#start');
-
     const endInput = $('#end');
-
     const durationEl = $('#duration');
 
-
-
     // Defaults: start=now, end=now+60min
-
     const now = new Date();
-
     startInput.value = toLocalDatetimeValue(now);
-
     endInput.value = toLocalDatetimeValue(new Date(now.getTime() + 60*60000));
 
-
-
     function resolveTechName(){
-
       const id = techIdInput.value.trim().toUpperCase();
-
       const name = EMPLOYEES[id];
-
       if(name){
-
         techNamePreview.innerHTML = `<span class="id-ok">✔ ${name}</span>`;
-
         techNamePreview.dataset.resolved = name;
-
       } else if(id){
-
         techNamePreview.innerHTML = `<span class="id-bad">ID not found</span>`;
-
         techNamePreview.dataset.resolved = '';
-
       } else {
-
         techNamePreview.textContent = 'Enter your ID to resolve full name…';
-
         techNamePreview.dataset.resolved = '';
-
       }
-
     }
-
-
 
     function updateDuration(){
-
       const s = new Date(startInput.value);
-
       const e = new Date(endInput.value);
-
       const mins = minutesBetween(s, e);
-
       durationEl.textContent = formatDuration(mins);
-
     }
 
-
-
     techIdInput.addEventListener('input', resolveTechName);
-
     startInput.addEventListener('change', updateDuration);
-
     endInput.addEventListener('change', updateDuration);
-
     updateDuration();
 
-
-
     // Reset
-document.getElementById('resetBtn').addEventListener('click', ()=>{
-  document.getElementById('interventionForm').reset();
-  
-  // Uncheck all visual cards
-  document.querySelectorAll('input[name="restaurant_opt"]').forEach(el => el.checked = false);
-  
-  // ... existing reset logic ...
-  startInput.value = toLocalDatetimeValue(new Date());
-  endInput.value = toLocalDatetimeValue(new Date(Date.now() + 60*60000));
-  resolveTechName();
-  updateDuration();
-  showToast('info', 'Form cleared');
-});
-
-
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      document.getElementById('interventionForm').reset();
+      startInput.value = toLocalDatetimeValue(new Date());
+      endInput.value = toLocalDatetimeValue(new Date(Date.now() + 60*60000));
+      resolveTechName();
+      updateDuration();
+      showToast('info', 'Form cleared');
+    });
 
     // Submit
-
     document.getElementById('interventionForm').addEventListener('submit', async (e)=>{
-
       e.preventDefault();
 
-
-
       // Basic validation
-
       const id = techIdInput.value.trim().toUpperCase();
-
       const techName = techNamePreview.dataset.resolved || '';
-
       if(!id || !techName){
-
         return showToast('error', 'Please enter a valid Technician ID');
-
       }
-
-
 
       const s = new Date(startInput.value);
-
       const eEnd = new Date(endInput.value);
-
       if(!(s instanceof Date) || isNaN(+s) || !(eEnd instanceof Date) || isNaN(+eEnd)){
-
         return showToast('error', 'Invalid date/time values');
-
       }
-
       if(eEnd < s){
-
         return showToast('warning', 'End time must be after start time');
-
       }
 
-
-
-// --- NEW LOGIC START ---
-// 1. Select all CHECKED checkboxes with the name "restaurant_opt"
-const checkedBoxes = document.querySelectorAll('input[name="restaurant_opt"]:checked');
-
-// 2. Map them to their values (names)
-const selectedValues = Array.from(checkedBoxes).map(cb => cb.value);
-
-// 3. Validation
-if(selectedValues.length === 0){
-  return showToast('error', 'Please select at least one restaurant');
-}
-
-// 4. Join them into a string
-const restaurant = selectedValues.join(', ');
-// --- NEW LOGIC END ---
-
-
+      const restaurant = document.getElementById('restaurant').value.trim();
       const motif = document.getElementById('motif').value;
-
       const nature = document.querySelector('input[name="nature"]:checked').value;
-
       const description = document.getElementById('description').value.trim();
-
       if(!restaurant || !motif || !description){
-
         return showToast('error', 'Please fill all required fields');
-
       }
-
-
 
       const mins = minutesBetween(s, eEnd);
-
       const interventionId = generateInterventionId();
 
-
-
 const payload = {
-
   type: "intervention",
-
   interventionId,
-
   techId: id,
-
   techName,
-
   startDateTime: s.toISOString(),
-
   endDateTime: eEnd.toISOString(),
-
   durationMinutes: mins,
-
   restaurant,
-
   nature,
-
   motif,
-
   description,
-
   submittedAt: new Date().toISOString(),
-
 };
 
 
-
-
-
       // Save locally as a safety net (in case network glitch) – optional
-
       const pending = JSON.parse(localStorage.getItem('pending_interventions') || '[]');
-
       pending.push(payload);
-
       localStorage.setItem('pending_interventions', JSON.stringify(pending));
 
-
-
       // Send to Google Apps Script
-
       setSubmitting(true);
-
       try{
-
 try {
-
   await fetch(APPS_SCRIPT_URL, {
-
     method: 'POST',
-
     mode: "no-cors",  
-
     headers: { 'Content-Type': 'application/json' },
-
     body: JSON.stringify(payload),
-
   });
-
-
 
   showToast('success', 'Intervention saved');
 
-
-
   const arr = JSON.parse(localStorage.getItem('pending_interventions') || '[]')
-
                 .filter(x => x.interventionId !== interventionId);
-
   localStorage.setItem('pending_interventions', JSON.stringify(arr));
-
   if (nature === "Remote") {
-
       formDirty = false;
-
   // Intervention à distance -> pas de frais, retour page index
-
   setTimeout(() => { window.location.href = "index.html"; }, 650);
-
 } else {
-
   formDirty = false;
-
   // Redirect
-
   const q = new URLSearchParams({ id: interventionId, tech: techName, rest: restaurant }).toString();
-
   setTimeout(()=>{ window.location.href = `${EXPENSES_PAGE}?${q}`; }, 650);
-
 }
-
-
 
 } catch(err) {
-
   console.error(err);
-
   Swal.fire({
-
     icon: 'error', title: 'Could not submit',
-
     text: 'Please check your internet connection or Apps Script URL/CORS settings.',
-
     confirmButtonText: 'OK', background: '#111528', color: '#eef2ff'
-
   });
-
 }
 
-
-
       } catch(err){
-
         console.error(err);
-
         Swal.fire({
-
           icon: 'error', title: 'Could not submit',
-
           text: 'Please check your internet connection or Apps Script URL/CORS settings.',
-
           confirmButtonText: 'OK', background: '#111528', color: '#eef2ff'
-
         });
-
       } finally {
-
         setSubmitting(false);
-
       }
-
     });
-
-
 
     // Warn before unload if form dirty
-
     let formDirty = false;
-
     document.getElementById('interventionForm').addEventListener('input', ()=>{ formDirty = true; });
-
     window.addEventListener('beforeunload', (e)=>{
-
       if(formDirty){ e.preventDefault(); e.returnValue=''; }
-
     });
-
   </script>
 </body>
 </html>

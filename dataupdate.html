@@ -3,388 +3,175 @@
 <head>
   <link rel="icon" type="image/png" href="https://www.pngfind.com/pngs/m/665-6657787_customer-support-icon-png-image-with-transparent-background.png">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Intervention OS</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  
+  <title>📊 Intervention Reports</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
   <style>
-    :root {
-      --bg-dark: #030712;
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-surface: rgba(17, 24, 39, 0.7);
-      --glass-highlight: rgba(255, 255, 255, 0.03);
-      --primary-accent: #6366f1;
-      --primary-glow: rgba(99, 102, 241, 0.5);
-      --text-main: #f8fafc;
-      --text-sec: #94a3b8;
-    }
-
-    /* 1. ATMOSPHERE & BACKGROUND */
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      font-family: 'Inter', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-      /* Mesh Gradient Background */
-      background-image: 
-        radial-gradient(circle at 15% 50%, rgba(79, 70, 229, 0.15), transparent 40%),
-        radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.1), transparent 40%);
+      background: #0f1113;
+      color: #e8eef6;
+      font-family: "Segoe UI", sans-serif;
     }
-
-    /* 2. LAYOUT & CONTAINERS */
-    .app-container {
-      max-width: 1600px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-
-    .hero-header {
-      margin-bottom: 40px;
-      position: relative;
-    }
-
-    .hero-title {
-      font-size: 2.5rem;
+    h2, h4 {
+      color: #ffcc00;
       font-weight: 700;
-      letter-spacing: -0.03em;
-      background: linear-gradient(to right, #fff, #94a3b8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(255,204,0,0.3);
     }
-
-    /* 3. CONTROL HUD (The floating bar) */
-    .control-hud {
-      background: var(--glass-surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 20px;
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr auto;
-      gap: 16px;
-      align-items: end;
-      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
-      margin-bottom: 30px;
+    .table {
+      background: #151515;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
     }
-
-    /* Modern Inputs */
-    .input-group-custom label {
-      display: block;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-sec);
-      margin-bottom: 6px;
-      font-weight: 600;
+    .table thead {
+      background: linear-gradient(90deg,#ff7e00,#ffcc00);
+      color: #121212;
     }
-
-    .custom-input {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid #334155;
-      color: #fff;
+    .table tbody tr:hover {
+      background: rgba(255,204,0,0.06);
+      transform: scale(1.01);
+    }
+    .btn {
       border-radius: 10px;
-      padding: 12px 16px;
-      width: 100%;
-      font-size: 0.95rem;
-      transition: all 0.2s;
+      font-weight: 700;
+      transition: all .25s ease;
     }
-
-    .custom-input:focus {
-      outline: none;
-      border-color: var(--primary-accent);
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-      background: rgba(0, 0, 0, 0.5);
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 0 18px rgba(255,204,0,0.12); }
+    .container { margin-top: 30px; }
+    .report-section { margin-top: 40px; }
+    table th, table td { font-size: 14px; cursor: pointer; }
+    th.sortable:hover { background: #343a40 !important; color: #ffc107; }
+    th .arrow { font-size: 12px; margin-left: 5px; }
+    /* AUTH MODAL STYLING */
+    .modal-backdrop.show { background-color: rgba(0,0,0,0.7); }
+    .auth-modal .modal-content {
+      background: linear-gradient(180deg,#121214,#17181a);
+      border: 1px solid rgba(255,204,0,0.06);
+      color: #e9eef6;
+      box-shadow: 0 10px 50px rgba(0,0,0,0.7);
+      border-radius: 14px;
     }
-    
-    input[type="date"] { color-scheme: dark; }
-
-    /* 4. BUTTONS (Neon & Minimal) */
-    .btn-glow {
-      background: var(--primary-accent);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      width: 100%;
-      height: 48px;
-    }
-    
-    .btn-glow:hover {
-      box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
-      transform: translateY(-1px);
-    }
-
-    .btn-action {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--text-sec);
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-action:hover {
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-      border-color: rgba(255,255,255,0.3);
-    }
-
-    /* 5. CREATIVE DATA TABLE */
-    .data-canvas {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 8px; /* Gap between rows */
-      margin-top: 10px;
-    }
-
-    .data-canvas thead th {
-      text-transform: uppercase;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      color: #64748b;
-      padding: 0 16px 12px 16px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    
-    .data-canvas thead th:hover { color: #e2e8f0; }
-
-    /* The "Card" Row */
-    .data-canvas tbody tr {
-      background: rgba(30, 41, 59, 0.4);
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
-      cursor: default;
-    }
-
-    .data-canvas tbody tr td {
-      padding: 16px;
-      border: none;
-      vertical-align: middle;
-      font-size: 0.9rem;
-      border-top: 1px solid rgba(255,255,255,0.02);
-      border-bottom: 1px solid rgba(255,255,255,0.02);
-    }
-
-    /* Rounding the corners of the row */
-    .data-canvas tbody tr td:first-child {
-      border-top-left-radius: 12px;
-      border-bottom-left-radius: 12px;
-      border-left: 1px solid rgba(255,255,255,0.05);
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--primary-accent);
-      font-weight: 500;
-    }
-    .data-canvas tbody tr td:last-child {
-      border-top-right-radius: 12px;
-      border-bottom-right-radius: 12px;
-      border-right: 1px solid rgba(255,255,255,0.05);
-    }
-
-    /* Row Hover Effect */
-    .data-canvas tbody tr:hover {
-      transform: scale(1.005) translateY(-2px);
-      background: rgba(30, 41, 59, 0.7);
-      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-      z-index: 10;
-      position: relative;
-    }
-
-    /* Cell Styling */
-    .cell-tech { font-weight: 600; color: #fff; }
-    .cell-date { color: var(--text-sec); font-size: 0.85rem; }
-    .cell-desc { color: #cbd5e1; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    
-    /* Tags */
-    .tag {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
-    }
-    .tag-nature { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
-
-    /* 6. MODALS (Glassmorphism) */
-    .modal-backdrop.show {
-      background-color: rgba(3, 7, 18, 0.8);
-      backdrop-filter: blur(10px);
-    }
-    .modal-content {
-      background: linear-gradient(145deg, #1e293b, #0f172a);
-      border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
-      border-radius: 20px;
+    .auth-modal .modal-header { border-bottom: 0; }
+    .auth-modal .form-control {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
       color: #fff;
     }
-    .modal-header, .modal-footer { border-color: rgba(255,255,255,0.05); }
-
-    /* 7. ANIMATION */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .data-canvas tbody tr {
-      animation: fadeInUp 0.4s ease-out backwards;
-    }
-    /* Stagger loop handled by CSS generic delays or just quick load */
-    .data-canvas tbody tr:nth-child(1) { animation-delay: 0.05s; }
-    .data-canvas tbody tr:nth-child(2) { animation-delay: 0.10s; }
-    .data-canvas tbody tr:nth-child(3) { animation-delay: 0.15s; }
-    /* ... rest handle normally */
-
-    /* Badge */
-    .user-badge {
-      position: absolute;
-      top: 0; right: 0;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 8px 16px;
-      border-radius: 30px;
-      font-size: 0.8rem;
-      color: var(--text-sec);
-    }
-    .user-badge strong { color: #fff; }
-
-    /* Responsive adjustments */
-    @media (max-width: 992px) {
-      .control-hud { grid-template-columns: 1fr; }
-    }
+    .badge-role { background: rgba(255,204,0,0.12); color: #ffcc00; border-radius: 8px; padding: 6px 8px; font-weight: 700; }
+    /* small helpers */
+    .muted { color: #9aa3b2; font-size: 13px; }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2 class="text-center mb-4">📋 Intervention Reports</h2>
 
-  <div class="app-container">
-    
-    <header class="hero-header">
-      <div class="user-badge" id="currentUserBadge">Not logged in</div>
-      <h1 class="hero-title">Intervention OS</h1>
-      <p style="color: var(--text-sec); max-width: 600px;">
-        Advanced reporting & intervention tracking system.
-      </p>
-    </header>
-
-    <div class="control-hud">
-      <div class="input-group-custom">
-        <label>Global Search</label>
-        <input type="text" id="searchId" class="custom-input" placeholder="Search ID, Name, Keyword...">
+    <!-- Search and Date Range -->
+    <div class="row g-3 mb-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Search by ID / Name</label>
+        <input type="text" id="searchId" class="form-control" placeholder="Ex: ID or Name">
+        <div class="muted mt-1">Type a name or matricule and click <strong>Apply Filters</strong>.</div>
       </div>
-      <div class="input-group-custom">
-        <label>Start Date</label>
-        <input type="date" id="startDate" class="custom-input">
+      <div class="col-md-3">
+        <label class="form-label">Start Date</label>
+        <input type="date" id="startDate" class="form-control">
       </div>
-      <div class="input-group-custom">
-        <label>End Date</label>
-        <input type="date" id="endDate" class="custom-input">
+      <div class="col-md-3">
+        <label class="form-label">End Date</label>
+        <input type="date" id="endDate" class="form-control">
       </div>
-      <div style="width: 100%;">
-        <button class="btn-glow" onclick="applyFilters()">
-          Filter Results
-        </button>
+      <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-primary w-100" onclick="applyFilters()">🔎 Apply Filters</button>
       </div>
     </div>
 
-    <div class="d-flex gap-3 mb-4 justify-content-end">
-      <button class="btn-action" onclick="printInterventions()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-        Print
-      </button>
-      <button class="btn-action" onclick="generateMissionOrder()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
-        Mission Order
-      </button>
-      <button class="btn-action" onclick="generateExpenseReport()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-        Expense Report
-      </button>
-    </div>
+    <!-- Interventions Table -->
+    <div class="report-section">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="mb-0">📊 Interventions</h4>
+        <div>
+          <span id="currentUserBadge" class="badge-role">Not logged</span>
+        </div>
+      </div>
 
-    <div class="table-responsive">
-      <table class="data-canvas" id="interventionTable">
-        <thead>
+      <table class="table table-bordered table-striped" id="interventionTable">
+        <thead class="table-dark">
           <tr>
-            <th onclick="sortTable('Tech ID')">Tech ID</th>
-            <th onclick="sortTable('Tech Name')">Technician</th>
-            <th onclick="sortTable('Intervention ID')">Ref #</th>
-            <th onclick="sortTable('Restaurant')">Location</th>
-            <th onclick="sortTable('Start Date')">Start</th>
-            <th onclick="sortTable('End Date')">End</th>
-            <th onclick="sortTable('Nature')">Nature</th>
-            <th onclick="sortTable('Motif')">Reason</th>
-            <th>Details</th>
+            <th class="sortable" onclick="sortTable('Tech ID')">Tech ID <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Tech Name')">Tech Name <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Intervention ID')">Intervention ID <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Restaurant')">Restaurant <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Start Date')">Start Date <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('End Date')">End Date <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Nature')">Nature <span class="arrow">↕</span></th>
+            <th class="sortable" onclick="sortTable('Motif')">Motif <span class="arrow">↕</span></th>
+            <th>Description</th>
           </tr>
         </thead>
-        <tbody>
-          </tbody>
+        <tbody></tbody>
       </table>
-    </div>
 
-    <div id="pagination" class="d-flex justify-content-center mt-5 gap-2"></div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success mt-3" onclick="printInterventions()">🖨️ Print Interventions</button>
+        <button class="btn btn-warning mt-3" onclick="generateMissionOrder()">📄 Générer Ordre de Mission</button>
+        <button class="btn btn-info mt-3" onclick="generateExpenseReport()">📄 Générer Note de Frais</button>
+      </div>
+
+      <div id="pagination" class="mt-3 d-flex justify-content-center"></div>
+    </div>
   </div>
 
-
-  <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <!-- AUTHENTICATION MODAL (login) -->
+  <div class="modal fade auth-modal" id="authModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content p-4">
-        <div class="text-center mb-4">
-          <h3 class="fw-bold mb-1">Welcome Back</h3>
-          <div class="text-muted small">Please authenticate to access the system.</div>
+      <div class="modal-content p-3">
+        <div class="modal-header border-0">
+          <div>
+            <h5 class="modal-title">🔐 Authentification requise</h5>
+            <div class="muted">Entrez votre matricule (ou nom) et mot de passe.</div>
+          </div>
         </div>
-        
-        <div class="mb-3">
-          <label class="small text-muted mb-1 text-uppercase fw-bold">Identity</label>
-          <input id="authId" class="custom-input" placeholder="User ID or Name">
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label">Matricule ou Nom</label>
+            <input id="authId" class="form-control" placeholder="Ex: ID ou Name">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Mot de passe</label>
+            <input id="authPassword" type="password" class="form-control" placeholder="tapez le mot de passe">
+          </div>
+          <div id="authError" class="text-danger small" style="display:none;">Identifiants invalides — réessayez.</div>
+          <div class="mt-2 muted">Astuce: mots de passe générés : <code>Mot de pass</code> (ex: <strong>name123</strong>).</div>
         </div>
-        <div class="mb-4">
-          <label class="small text-muted mb-1 text-uppercase fw-bold">Passkey</label>
-          <input id="authPassword" type="password" class="custom-input" placeholder="••••••••">
-        </div>
-
-        <div id="authError" class="text-danger small text-center mb-3" style="display:none;">Access Denied. Check credentials.</div>
-
-        <button class="btn-glow" onclick="performLogin()">Authenticate</button>
-        
-        <div class="mt-3 text-center">
-             <!-- <span class="badge bg-dark border border-secondary text-secondary" style="font-weight:400; cursor:pointer;" onclick="showDemoCredentials()">View Demo Accounts</span> -->
+        <div class="modal-footer border-0">
+          <!-- <button class="btn btn-secondary" onclick="showDemoCredentials()">Voir comptes</button> -->
+          <button class="btn btn-primary" onclick="performLogin()">Se connecter</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="modal fade" id="promptPasswordModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <!-- PASSWORD PROMPT MODAL (for viewing another user's results) -->
+  <div class="modal fade auth-modal" id="promptPasswordModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content p-4">
-        <h5 class="fw-bold mb-3">Security Check</h5>
-        <div id="promptTarget" class="text-warning small mb-3"></div>
-        
-        <input id="promptPassword" type="password" class="custom-input mb-3" placeholder="Enter Authorization Key">
-        
-        <div id="promptError" class="text-danger small mb-3" style="display:none;">Invalid Key.</div>
-        
-        <div class="d-flex gap-2">
-          <button class="btn btn-dark w-100" onclick="bootstrap.Modal.getInstance(document.getElementById('promptPasswordModal')).hide()">Cancel</button>
-          <button class="btn btn-light w-100 fw-bold" onclick="submitPromptPassword()">Authorize</button>
+      <div class="modal-content p-3">
+        <div class="modal-header border-0">
+          <h5 class="modal-title">🔑 Saisir le mot de passe pour accéder</h5>
+        </div>
+        <div class="modal-body">
+          <div id="promptTarget" class="mb-2 muted"></div>
+          <div class="mb-3">
+            <label class="form-label">Mot de passe</label>
+            <input id="promptPassword" type="password" class="form-control" placeholder="Mot de passe pour l'utilisateur ciblé">
+          </div>
+          <div id="promptError" class="text-danger small" style="display:none;">Mot de passe incorrect.</div>
+        </div>
+        <div class="modal-footer border-0">
+          <button class="btn btn-secondary" onclick="bootstrap.Modal.getInstance(document.getElementById('promptPasswordModal')).hide()">Annuler</button>
+          <button class="btn btn-primary" onclick="submitPromptPassword()">Valider</button>
         </div>
       </div>
     </div>
@@ -392,6 +179,7 @@
 
 <script>
   // ===== USERS / PASSWORDS config =====
+  // Provided mapping (matricule -> name), + passwords generated (firstname + 123)
   const USERS = {
     "4099": "Amine Belkhadim",
     "924":  "Mehdi Ezzahri",
@@ -400,31 +188,50 @@
     "1008": "Ilyass Elidrissi"
   };
 
-  const accountsById = {};
-  const nameToId = {};
+  // Build lookup maps: id -> {name, password}, nameLower -> id
+  // const accountsById = {};
+  // const nameToId = {};
+  // Object.entries(USERS).forEach(([id, fullname]) => {
+  //   const firstname = (fullname.split(" ")[0] || "").toLowerCase();
+  //   const password = `${firstname}123`; // simple generated code as requested
+  //   accountsById[id] = { id, name: fullname, password, role: "user" };
+  //   nameToId[fullname.toLowerCase()] = id;
+  // });
 
-  // Explicitly assign passwords for each user
-  accountsById["4099"] = { id: "4099", name: "Amine Belkhadim", password: "amine123", role: "user" };
-  accountsById["924"]  = { id: "924",  name: "Mehdi Ezzahri",  password: "mehdi123", role: "user" };
-  accountsById["2712"] = { id: "2712", name: "Youssef Fahsi",  password: "youssef123", role: "user" };
-  accountsById["5323"] = { id: "5323", name: "Achraf Hammou",  password: "achraf123", role: "user" };
-  accountsById["1008"] = { id: "1008", name: "Ilyass Elidrissi", password: "ilyass123", role: "user" };
+  // Add an admin account
+  // const ADMIN_ID = "000000";
+  // accountsById[ADMIN_ID] = { id: ADMIN_ID, name: "Administrator", password: "admin123", role: "admin" };
 
-  // Keep the admin account
-  accountsById["000000"] = { id: "000000", name: "Administrator", password: "admin123", role: "admin" };
 
-  // Build the nameToId lookup
-  for (const acc of Object.values(accountsById)) {
-    nameToId[acc.name.toLowerCase()] = acc.id;
-  }
+//   // Build lookup maps: id -> {name, password}, nameLower -> id
+const accountsById = {};
+const nameToId = {};
 
-  // Convenience: allow lookup by id or by name.
+// Explicitly assign passwords for each user
+accountsById["4099"] = { id: "4099", name: "Amine Belkhadim", password: "amine123", role: "user" };
+accountsById["924"]  = { id: "924",  name: "Mehdi Ezzahri",  password: "mehdi123", role: "user" };
+accountsById["2712"] = { id: "2712", name: "Youssef Fahsi",  password: "youssef123", role: "user" };
+accountsById["5323"] = { id: "5323", name: "Achraf Hammou",  password: "achraf123", role: "user" };
+accountsById["1008"] = { id: "1008", name: "Ilyass Elidrissi", password: "ilyass123", role: "user" };
+
+// // Keep the admin account
+accountsById["000000"] = { id: "000000", name: "Administrator", password: "admin123", role: "admin" };
+
+// // Build the nameToId lookup
+for (const acc of Object.values(accountsById)) {
+  nameToId[acc.name.toLowerCase()] = acc.id;
+}
+
+
+  // Convenience: allow lookup by id or by name. Also support searching by partial name.
   function findAccountByKey(key) {
     if (!key) return null;
     key = String(key).trim();
     if (accountsById[key]) return accountsById[key];
+    // try case-insensitive exact name
     const lower = key.toLowerCase();
     if (nameToId[lower]) return accountsById[nameToId[lower]];
+    // try partial name match (first or last name)
     for (const id of Object.keys(accountsById)) {
       const acc = accountsById[id];
       if (acc.name.toLowerCase().includes(lower)) return acc;
@@ -439,10 +246,15 @@
   let currentPage = 1;
   const rowsPerPage = 25;
 
+  // The logged in user:
   let currentUser = null;
+  // A set of user IDs we've been authorized to view temporarily (includes currentUser by default after login)
   let allowedView = new Set();
+
+  // Temporary variable for "prompt password to view target"
   let promptTargetAccount = null;
 
+  // Elements / bootstrap modal instances
   document.addEventListener("DOMContentLoaded", () => {
     // show auth modal on load
     const authModalEl = document.getElementById('authModal');
@@ -454,6 +266,7 @@
       .then(res => res.json())
       .then(data => {
         allData = data;
+        // by default hide until logged-in; but still keep loaded
         filteredData = [];
         renderTable(filteredData);
       })
@@ -471,6 +284,7 @@
   });
 
   function showDemoCredentials() {
+    // Show a helpful list inside the modal (not storing secrets externally)
     const demo = Object.values(accountsById).map(a => `${a.id} → ${a.name} (pwd: ${a.password})`).join('\n');
     alert("Comptes de démonstration :\n\n" + demo + `\n\nAdmin: ${accountsById["000000"].id} / ${accountsById["000000"].password}`);
   }
@@ -489,13 +303,16 @@
 
     // success
     currentUser = { id: account.id, name: account.name, role: account.role || 'user' };
-    allowedView = new Set([currentUser.id]); 
+    allowedView = new Set([currentUser.id]); // self allowed
     if (currentUser.role === 'admin') {
+      // admin can see everything
       Object.keys(accountsById).forEach(k => allowedView.add(k));
     }
-    document.getElementById('currentUserBadge').innerHTML = `Logged in as <strong>${currentUser.name}</strong>`;
+    // update badge and close modal
+    document.getElementById('currentUserBadge').innerText = `${currentUser.name} (${currentUser.role==='admin'?'ADMIN':'user'})`;
     bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
 
+    // render with default: show only user interventions (unless admin)
     if (currentUser.role === 'admin') filteredData = [...allData];
     else filteredData = allData.filter(r => (r["Tech ID"] || "").toString() === currentUser.id || (r["Tech Name"] || "").toLowerCase().includes(currentUser.name.toLowerCase()));
 
@@ -503,18 +320,22 @@
     renderTable(filteredData);
   }
 
+  // when someone types a different name/ID and wants to view, prompt for that user's password (unless admin)
   function promptPasswordForTarget(targetKey) {
+    // find account
     const acc = findAccountByKey(targetKey);
     if (!acc) {
+      // if not a known protected account, proceed normally
       applyFiltersAfterAuthOverride(targetKey);
       return;
     }
     promptTargetAccount = acc;
-    document.getElementById('promptTarget').innerText = `Access Request for: ${acc.name} (${acc.id})`;
+    document.getElementById('promptTarget').innerText = `Accès pour : ${acc.name} (${acc.id})`;
     document.getElementById('promptPassword').value = '';
     document.getElementById('promptError').style.display = 'none';
     const pm = new bootstrap.Modal(document.getElementById('promptPasswordModal'));
     pm.show();
+    // focus
     setTimeout(() => document.getElementById('promptPassword').focus(), 250);
   }
 
@@ -524,9 +345,12 @@
     errEl.style.display = 'none';
     if (!promptTargetAccount) return;
 
+    // check password matches that account
     if (pwd === promptTargetAccount.password) {
+      // authorize view for this session
       allowedView.add(promptTargetAccount.id);
       bootstrap.Modal.getInstance(document.getElementById('promptPasswordModal')).hide();
+      // now apply filters and show results for that target
       applyFiltersAfterAuthOverride(promptTargetAccount.name);
       promptTargetAccount = null;
     } else {
@@ -535,28 +359,36 @@
   }
 
   function applyFilters() {
+    // If not logged in, force login modal
     if (!currentUser) {
       const authModal = new bootstrap.Modal(document.getElementById('authModal'));
       authModal.show();
       return;
     }
+
+    // If user typed a search key that targets another account and is not allowed, prompt password
     const searchRaw = document.getElementById('searchId').value.trim();
     if (searchRaw) {
       const targetAcc = findAccountByKey(searchRaw);
       if (targetAcc && !allowedView.has(targetAcc.id) && currentUser.role !== 'admin') {
+        // need password for viewing this other user's data
         promptPasswordForTarget(searchRaw);
-        return; 
+        return; // wait for prompt result
       }
     }
+
+    // otherwise proceed
     applyFiltersAfterAuthOverride(searchRaw);
   }
 
   function applyFiltersAfterAuthOverride(searchRaw) {
+    // Build date range inclusive
     const startVal = document.getElementById('startDate').value;
     const endVal = document.getElementById('endDate').value;
     let startDate = startVal ? new Date(startVal + "T00:00:00") : null;
     let endDate   = endVal ? new Date(endVal + "T23:59:59") : null;
 
+    // If both provided and start > end, swap
     if (startDate && endDate && startDate > endDate) {
       const tmp = startDate;
       startDate = endDate;
@@ -566,14 +398,17 @@
     let keyLower = (searchRaw || "").toLowerCase();
 
     filteredData = allData.filter(row => {
+      // First: enforce visibility rules
       const techId = (row["Tech ID"] || "").toString();
       const techName = (row["Tech Name"] || "").toString();
       if (currentUser.role !== 'admin') {
+        // allow only rows where (techId is in allowedView) OR (techName matches any allowedView name)
         if (!allowedView.has(techId) && !Array.from(allowedView).some(id=>accountsById[id] && techName.toLowerCase().includes((accountsById[id].name||"").toLowerCase()))) {
           return false;
         }
       }
 
+      // Search filter (if any)
       let matchSearch = true;
       if (keyLower) {
         matchSearch = (
@@ -586,6 +421,7 @@
         );
       }
 
+      // Date filter: use Start Date inclusion for filter (as requested)
       let matchesDate = true;
       if (startDate || endDate) {
         const d = new Date(row["Start Date"]);
@@ -599,6 +435,7 @@
       return matchSearch && matchesDate;
     });
 
+    // Reset pagination
     currentPage = 1;
     renderTable(filteredData);
   }
@@ -607,33 +444,33 @@
     if (!dateStr) return "";
     const d = new Date(dateStr);
     if (isNaN(d)) return dateStr;
-    return d.toLocaleDateString("fr-FR"); 
+    return d.toLocaleDateString("fr-FR"); // dd/mm/yyyy
   }
 
-  // Modified render to match new CSS classes
   function renderTable(data) {
     const tbody = document.querySelector("#interventionTable tbody");
     tbody.innerHTML = "";
 
+    // pagination slicing
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, data.length);
     const pageData = data.slice(startIndex, endIndex);
 
     if (pageData.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" class="text-center p-5 text-muted">No records found matching your criteria.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center muted">Aucune intervention à afficher — vérifiez le filtre ou vos droits d'accès.</td></tr>`;
     } else {
       pageData.forEach(row => {
         tbody.innerHTML += `
           <tr>
-            <td>#${row["Tech ID"] || "?"}</td>
-            <td class="cell-tech">${row["Tech Name"] || ""}</td>
-            <td style="color:#a5b4fc">${row["Intervention ID"] || ""}</td>
+            <td>${row["Tech ID"] || ""}</td>
+            <td>${row["Tech Name"] || ""}</td>
+            <td>${row["Intervention ID"] || ""}</td>
             <td>${row["Restaurant"] || ""}</td>
-            <td class="cell-date">${formatDateOnly(row["Start Date"])}</td>
-            <td class="cell-date">${formatDateOnly(row["End Date"])}</td>
-            <td><span class="tag tag-nature">${row["Nature"] || "-"}</span></td>
+            <td>${formatDateOnly(row["Start Date"])}</td>
+            <td>${formatDateOnly(row["End Date"])}</td>
+            <td>${row["Nature"] || ""}</td>
             <td>${row["Motif"] || ""}</td>
-            <td class="cell-desc" title="${row["Description"] || ""}">${row["Description"] || ""}</td>
+            <td>${row["Description"] || ""}</td>
           </tr>`;
       });
     }
@@ -645,10 +482,10 @@
     const pagination = document.getElementById("pagination");
     pagination.innerHTML = "";
 
-    const prevBtn = `<button class="btn btn-dark border border-secondary" onclick="changePage(-1)" ${currentPage===1?"disabled":""}>← Prev</button>`;
-    const nextBtn = `<button class="btn btn-dark border border-secondary" onclick="changePage(1)" ${currentPage===totalPages?"disabled":""}>Next →</button>`;
+    const prevBtn = `<button class="btn btn-outline-light mx-1" onclick="changePage(-1)" ${currentPage===1?"disabled":""}>⬅ Prev</button>`;
+    const nextBtn = `<button class="btn btn-outline-light mx-1" onclick="changePage(1)" ${currentPage===totalPages?"disabled":""}>Next ➡</button>`;
 
-    pagination.innerHTML = prevBtn + `<span class="align-self-center text-muted small">Page ${currentPage} / ${totalPages}</span>` + nextBtn;
+    pagination.innerHTML = prevBtn + `<span class="mx-2 align-self-center">Page ${currentPage} / ${totalPages}</span>` + nextBtn;
   }
 
   function changePage(direction) {
@@ -657,6 +494,7 @@
     renderTable(filteredData);
   }
 
+  // ===== Sorting =====
   function sortTable(column) {
     if (!filteredData || filteredData.length === 0) return;
     if (!sortDirections[column]) sortDirections[column] = "asc";
@@ -665,6 +503,7 @@
     filteredData.sort((a, b) => {
       let valA = (a[column] || "").toString();
       let valB = (b[column] || "").toString();
+      // dates sort
       if (column.includes("Date")) {
         valA = new Date(valA || 0);
         valB = new Date(valB || 0);
@@ -681,8 +520,6 @@
     renderTable(filteredData);
   }
 
-
-  
   // ===== PDF / Printing / Mission / Expense functions =====
   // I preserved your existing implementations but made them respect filteredData and currentUser visibility.
   async function generateExpenseReport() {
@@ -1146,7 +983,7 @@ let rows = Object.values(mergedByDay).map(g => {
   }
 }
 
-
+  // helper loadImage used in many places
   function loadImage(url) {
     return new Promise((resolve) => {
       const img = new Image();
@@ -1163,6 +1000,7 @@ let rows = Object.values(mergedByDay).map(g => {
     });
   }
 
+  // Expose some functions to global to be callable from HTML attributes
   window.applyFilters = applyFilters;
   window.sortTable = sortTable;
   window.changePage = changePage;
@@ -1170,6 +1008,7 @@ let rows = Object.values(mergedByDay).map(g => {
   window.generateMissionOrder = generateMissionOrder;
   window.generateExpenseReport = generateExpenseReport;
   window.showDemoCredentials = showDemoCredentials;
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
