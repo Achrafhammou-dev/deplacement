@@ -3,7 +3,9 @@
     { "source": "/index", "destination": "/index.html" },
     { "source": "/report", "destination": "/report.html" },
     { "source": "/costs", "destination": "/costs.html" },
-    { "source": "/data", "destination": "/data.html" }
+    { "source": "/data", "destination": "/data.html" },
+        { "source": "/statistics", "destination": "/statistics.html" }
+
   ],
   "redirects": [
     {
