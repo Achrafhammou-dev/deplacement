@@ -76,7 +76,19 @@
                 <span id="statusText">Connecting to Live Sheet...</span>
             </div>
         </div>
-        
+        <div class="glass-panel px-4 py-2 rounded-xl flex items-center gap-3">
+    <div class="flex flex-col">
+        <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">From</label>
+        <input type="date" id="startDate" onchange="filterData()" 
+               class="bg-transparent text-white text-sm focus:outline-none font-mono cursor-pointer [&::-webkit-calendar-picker-indicator]:invert opacity-80 hover:opacity-100">
+    </div>
+    <div class="h-8 w-px bg-white/10"></div>
+    <div class="flex flex-col">
+        <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">To</label>
+        <input type="date" id="endDate" onchange="filterData()" 
+               class="bg-transparent text-white text-sm focus:outline-none font-mono cursor-pointer [&::-webkit-calendar-picker-indicator]:invert opacity-80 hover:opacity-100">
+    </div>
+</div>
         <div class="relative group">
             <i class="fa-solid fa-filter absolute left-3 top-3 text-indigo-400 group-hover:text-indigo-300 transition-colors"></i>
             <select id="siteFilter" onchange="filterData()" class="glass-panel pl-10 pr-8 py-2.5 rounded-xl text-sm w-64 focus:outline-none text-white appearance-none cursor-pointer hover:bg-white/5 transition-colors">
@@ -562,6 +574,7 @@
             return Object.keys(obj).reduce((a, b) => obj[a] > obj[b] ? a : b);
         }
 
+        
         function initFilters() {
             const select = document.getElementById('siteFilter');
             const sites = [...new Set(globalData.map(d => d.Site))].sort();
@@ -574,11 +587,40 @@
             });
         }
 
-        function filterData() {
-            const val = document.getElementById('siteFilter').value;
-            const filtered = val === 'All' ? globalData : globalData.filter(d => d.Site === val);
-            renderDashboard(filtered);
+function filterData() {
+    // 1. Get Values
+    const siteVal = document.getElementById('siteFilter').value;
+    const startVal = document.getElementById('startDate').value;
+    const endVal = document.getElementById('endDate').value;
+
+    // 2. Prepare Date Objects (set time to midnight for accurate comparison)
+    const startDate = startVal ? new Date(startVal) : null;
+    const endDate = endVal ? new Date(endVal) : null;
+    if (startDate) startDate.setHours(0, 0, 0, 0);
+    if (endDate) endDate.setHours(23, 59, 59, 999); // Include the whole end day
+
+    // 3. Filter
+    const filtered = globalData.filter(d => {
+        // Site Check
+        const siteMatch = siteVal === 'All' || d.Site === siteVal;
+
+        // Date Check
+        let dateMatch = true;
+        if (d.Date) {
+            const rowDate = new Date(d.Date);
+            // Check validity of date
+            if (!isNaN(rowDate)) {
+                if (startDate && rowDate < startDate) dateMatch = false;
+                if (endDate && rowDate > endDate) dateMatch = false;
+            }
         }
+
+        return siteMatch && dateMatch;
+    });
+
+    // 4. Render
+    renderDashboard(filtered);
+}
 
         function updateStatus(status) {
             const bar = document.getElementById('progressBar');
